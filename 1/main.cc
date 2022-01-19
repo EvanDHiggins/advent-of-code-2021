@@ -1,5 +1,6 @@
 #include <iostream>
+#include "1/__generated_input.h"
 
 int main() {
-    std::cout << "Hello, world!" << std::endl;
+    std::cout << PROGRAM_INPUT << std::endl;
 }
