@@ -69,7 +69,14 @@ struct array_substring_helper<str, idx, idx, size, arr> {
 };
 
 template<char... cs, int start, int end, int size, const char (&arr)[size]>
-struct array_substring_helper<String<cs...>, start, end, size, arr, typename std::enable_if< start != end>::type> {
+struct array_substring_helper<
+    String<cs...>,
+    start,
+    end,
+    size,
+    arr,
+    typename std::enable_if< start != end>::type
+> {
     using type = typename array_substring_helper<
             String<cs..., arr[start]>,
             start + 1,

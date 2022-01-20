@@ -9,6 +9,7 @@ aoc_compile_time_binary(
         "//lib/cexpr:array",
         "//lib/cexpr:primitives",
         "//lib/cexpr:string",
+        "//lib/cexpr:math",
     ],
 
     # We need to parse the input file which is about 9600 characters.

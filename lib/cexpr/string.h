@@ -1,12 +1,17 @@
 #pragma once
 
+#include "lib/cexpr/math.h"
+
 namespace cexpr {
 
 template<char... cs>
 struct String;
 
-// =====================================================
-// Reversed the characters within str.
+/**
+ * reverse_string
+ *
+ * Reversed the characters in str.
+ */
 template<typename str>
 struct reverse_string;
 
@@ -30,8 +35,35 @@ struct reverse_string {
     using type = typename reverse_string_helper<String<>, str>::type;
 };
 
-// =====================================================
-// Appends c to str.
+
+
+/**
+ * to_int
+ *
+ * Converts string to integer.
+ */
+template<typename str>
+struct to_int;
+
+template<char c, char... cs>
+struct to_int<String<c, cs...>> {
+    constexpr static int value =
+        (((int)(c - '0')) * math::pow<10, (sizeof...(cs))>::value)
+        + to_int<String<cs...>>::value;
+};
+
+template<char c>
+struct to_int<String<c>> {
+    constexpr static int value = c - '0';
+};
+
+
+
+/**
+ * append_to_string
+ *
+ * Appends c to str.
+ */
 template<char c, typename str>
 struct append_to_string;
 

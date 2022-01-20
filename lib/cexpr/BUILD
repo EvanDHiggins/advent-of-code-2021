@@ -23,4 +23,12 @@ cc_library(
 cc_library(
     name = "string",
     hdrs = ["string.h"],
+    deps = [
+        "//lib/cexpr:math",
+    ]
+)
+
+cc_library(
+    name = "math",
+    hdrs = ["math.h"],
 )
