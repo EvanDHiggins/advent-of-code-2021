@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Templates support non-type parameters like 'int', 'char', etc., but they
  * exist in a slightly different namespace as types. And we can't write

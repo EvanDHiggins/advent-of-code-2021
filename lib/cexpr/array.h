@@ -1,3 +1,5 @@
+# pragma once
+
 #include "lib/cexpr/list.h"
 #include "lib/cexpr/primitives.h"
 
