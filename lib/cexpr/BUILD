@@ -11,10 +11,16 @@ cc_library(
     deps = [
         "//lib/cexpr:list",
         "//lib/cexpr:primitives",
+        "//lib/cexpr:string",
     ]
 )
 
 cc_library(
     name = "primitives",
     hdrs = ["primitives.h"],
+)
+
+cc_library(
+    name = "string",
+    hdrs = ["string.h"],
 )

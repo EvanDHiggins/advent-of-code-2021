@@ -4,11 +4,13 @@
 #include "lib/cexpr/list.h"
 #include "lib/cexpr/array.h"
 #include "lib/cexpr/primitives.h"
+#include "lib/cexpr/string.h"
 
 using namespace cexpr;
 
-template<char... cs>
-struct String;
+
+
+
 
 template<char curr, int curr_idx, int size, const char (&arr)[size]>
 struct first_non_whitespace_impl;
@@ -32,13 +34,25 @@ struct first_non_whitespace {
 };
 
 
+constexpr static char some_data[] = "012345678";
+
 int main() {
-    std::cout
-        << first_non_whitespace<
-               array::length(PROGRAM_INPUT), PROGRAM_INPUT>::value
-        << std::endl;
-    //using value =
-        //array::to_typed_char_list<
-            //array::length(PROGRAM_INPUT), PROGRAM_INPUT>::type;
-    //std::cout << Nth<2, value>::type::as_char << std::endl;
+    static_assert(
+            std::is_same<
+                append_to_string<'3', String<'1', '2'>>::type,
+                String<'1','2','3'>
+            >::value,
+            "append_to_string is not working.");
+    static_assert(
+            std::is_same<
+                    reverse_string<String<'1', '2', '3'>>::type,
+                    String<'3','2','1'>
+                >::value,
+            "They aren't the same!");
+    static_assert(
+            std::is_same<
+                array_substring<2, 5, array::length(some_data), some_data>::type,
+                String<'2', '3', '4'>
+            >::value,
+            "array_substring is broken!");
 }
