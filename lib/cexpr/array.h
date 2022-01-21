@@ -75,7 +75,7 @@ struct array_substring_helper<
     end,
     size,
     arr,
-    typename std::enable_if< start != end>::type
+    typename std::enable_if<start != end>::type
 > {
     using type = typename array_substring_helper<
             String<cs..., arr[start]>,
