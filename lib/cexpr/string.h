@@ -72,4 +72,24 @@ struct append_to_string<to_append, String<cs...>> {
     using type = String<cs..., to_append>;
 };
 
+namespace str {
+/**
+ * concat
+ */
+template<typename str1, typename... strs>
+struct concat;
+
+template<char... str1_chars, char... str2_chars, typename... rest>
+struct concat<String<str1_chars...>, String<str2_chars...>, rest...> {
+    using type =
+        typename concat<String<str1_chars..., str2_chars...>, rest...>::type;
+};
+
+template<char... str1_chars, char... str2_chars>
+struct concat<String<str1_chars...>, String<str2_chars...>> {
+    using type = String<str1_chars..., str2_chars...>;
+};
+
+}; // namespace str
+
 }; // namespace cexpr

@@ -19,8 +19,9 @@ cc_library(
         # is annoying and makes me have to handle things more
         # generally than I would otherwise.
         ":input",
-
         "//lib/cexpr:string",
+        "//lib/cexpr:list",
+        "//lib/cexpr:array",
     ]
 )
 

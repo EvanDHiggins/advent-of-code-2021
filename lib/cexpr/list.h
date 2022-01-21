@@ -41,4 +41,16 @@ struct Append<val, List<items...>> {
     using type = List<items..., val>;
 };
 
+namespace list {
+
+template<typename lst>
+struct length;
+
+template<typename... elems>
+struct length<List<elems...>> {
+    constexpr static int value = sizeof...(elems);
+};
+
+}; // namespace list
+
 }; // cexpr
