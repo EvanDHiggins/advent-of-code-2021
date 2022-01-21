@@ -1,16 +1,3 @@
-# Generates a C++ header file that wraps the contents of input_file in a
-# constexpr raw string.
-def inline_as_raw_string(name, input_file):
-  native.genrule(
-    name = name,
-    srcs = [input_file],
-    outs = [name + ".h"],
-    cmd = "\n".join([
-        "echo \"#pragma once\n\n\" > $@",
-        "echo \"constexpr const char* PROGRAM_INPUT = R\"'\"'\"(\" >> $@",
-        "cat $(location %s) >> $@" % input_file,
-        "echo \")\"'\"'\";\" >> $@"])
-  )
 
 def inline_as_array(name, input_file):
   native.genrule(
@@ -19,7 +6,8 @@ def inline_as_array(name, input_file):
     outs = [name + ".h"],
     cmd = "\n".join([
         "echo \"#pragma once\n\n\" > $@",
-        "echo \"constexpr const char PROGRAM_INPUT[] = R\"'\"'\"(\" >> $@",
+        "echo \"constexpr const char PROGRAM_INPUT[] = \" >> $@",
+        "echo -n \"R\"'\"'\"(\" >> $@",
         "cat $(location %s) >> $@" % input_file,
         "echo \")\"'\"'\";\" >> $@"])
   )

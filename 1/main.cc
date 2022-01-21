@@ -170,14 +170,49 @@ template<typename int_list>
 struct count_increases
  : count_increases_aux<0, int_list> {};
 
+/**
+ * count_increases_by_window
+ * count_increases_by_window_aux
+ *
+ * Provided an IntList, returns the number of consecutive pairs of numbers are
+ * increasing.
+ */
+template<typename int_list>
+struct count_increases_by_window;
+
+template<int count, typename int_list>
+struct count_increases_by_window_aux;
+
+template<int count, int first, int second, int third, int fourth, int... rest>
+struct count_increases_by_window_aux<count, IntList<first, second, third, fourth, rest...>>
+    : count_increases_by_window_aux<count + (int)((first + second + third) < (second + third + fourth)), IntList<second, third, fourth, rest...>>
+{};
+
+template<int count, int first, int second, int third, int fourth>
+struct count_increases_by_window_aux<count, IntList<first, second, third, fourth>>
+    : count_increases_by_window_aux<count + (int)((first + second + third) < (second + third + fourth)), IntList<>>
+{};
+
+template<int count>
+struct count_increases_by_window_aux<count, IntList<>> {
+    constexpr static int value = count;
+};
+
+template<typename int_list>
+struct count_increases_by_window
+ : count_increases_by_window_aux<0, int_list> {};
+
 
 using int_list = parse_file_to_int_list<
     array::length(PROGRAM_INPUT), PROGRAM_INPUT
 >::type;
 constexpr static int answer = count_increases<int_list>::value;
 
+constexpr static int answer_by_window = count_increases_by_window<int_list>::value;
+
 int main() {
     std::cout << "The answer is " << answer << std::endl;
+    std::cout << "The answer for part 2 is " << answer_by_window << std::endl;
 }
 
 // ================== Test cases =====================
