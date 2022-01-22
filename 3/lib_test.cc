@@ -18,5 +18,5 @@ constexpr static int expected_gamma = 22;
 constexpr static int expected_epsilon = 9;
 
 int main() {
-    static_assert(1 != 2);
+
 }

@@ -16,66 +16,6 @@ using UP = String<'u', 'p'>;
 using SPACE = String<' '>;
 
 
-template<
-    typename str, int idx, int size, const char (&arr)[size], typename = void>
-struct readline_helper;
-
-template<char... chars, int idx, int size, const char (&arr)[size]>
-struct readline_helper<
-    String<chars...>, idx, size, arr,
-    std::enable_if_t<arr[idx] != '\n' && arr[idx] != '\0'>>
-  : readline_helper<String<chars..., arr[idx]>, idx + 1, size, arr>
-{};
-
-template<typename str, int idx, int size, const char (&arr)[size]>
-struct readline_helper<
-    str, idx, size, arr,
-    typename std::enable_if<arr[idx] == '\n' || arr[idx] == '\0'>::type>
-{
-    static constexpr int next_index = idx + 1;
-    using type = str;
-};
-
-template<int start, int size, const char (&arr)[size]>
-struct readline : readline_helper<String<>, start, size, arr> {};
-
-/**
- * readlines
- */
-template<int size, const char (&arr)[size]>
-struct readlines;
-
-template<
-    typename lines, int idx, int size, const char (&arr)[size],
-    typename = void>
-struct readlines_helper;
-
-template<
-  typename... lines, int idx, int size, const char (&arr)[size]>
-struct readlines_helper<
-    List<lines...>, idx, size, arr,
-    std::enable_if_t<arr[idx] != '\0'>>
-{
-    using line = readline<idx, size, arr>;
-    using type = typename readlines_helper<
-            List<lines..., typename line::type>,
-            line::next_index,
-            size,
-            arr
-        >::type;
-};
-
-template<typename list, int idx, int size, const char (&arr)[size]>
-struct readlines_helper<
-    list, idx, size, arr,
-    std::enable_if_t<idx >= size>>
-{
-        using type = list;
-};
-
-template<int size, const char (&arr)[size]>
-struct readlines : readlines_helper<List<>, 0, size, arr> {};
-
 // ======================================================
 
 constexpr bool is_whitespace(char c) {
@@ -254,7 +194,8 @@ struct solution_part_two<List<dirs...>> : sol_part_two_helper<0, 0, 0, dirs...>
 {};
 
 using lines =
-    readlines<cexpr::array::length(PROGRAM_INPUT), PROGRAM_INPUT>::type;
+    cexpr::array::readlines<
+        cexpr::array::length(PROGRAM_INPUT), PROGRAM_INPUT>::type;
 using directions =
     parse_directions<lines>::type;
 
@@ -272,14 +213,14 @@ up 5)"; // answer is 5
 using cexpr::array::length;
 
 // ========== Test readline
-using first_readline = readline<0, length(test_data), test_data>;
+using first_readline = cexpr::array::readline<0, length(test_data), test_data>;
 static_assert(
         std::is_same<
             first_readline::type,
             cexpr::str::concat<FORWARD, SPACE, String<'1'>>::type
         >::value, "");
 static_assert(first_readline::next_index == 10, "");
-using second_readline = readline<
+using second_readline = cexpr::array::readline<
     first_readline::next_index,
     length(test_data),
     test_data>;
@@ -289,7 +230,7 @@ static_assert(
             cexpr::str::concat<BACKWARD, SPACE, String<'1'>>::type
         >::value, "");
 
-using last_readline = readline<50, length(test_data), test_data>;
+using last_readline = cexpr::array::readline<50, length(test_data), test_data>;
 static_assert(
         std::is_same<
             last_readline::type,
@@ -302,7 +243,7 @@ constexpr int test() {
     using cexpr::String;
     static_assert(
         std::is_same<
-            readlines<cexpr::array::length(test_data), test_data>::type,
+            cexpr::array::readlines_t<cexpr::array::length(test_data), test_data>,
             List<
                 concat<FORWARD, SPACE, String<'1'>>::type,
                 concat<BACKWARD, SPACE, String<'1'>>::type,
@@ -315,8 +256,8 @@ constexpr int test() {
     using split_test_1 = String<
         ' ', ' ', 'f', 'o', 'o', ' ', ' ', 'b', ' ', 'a', ' ', ' '>;
     using parsed_directions = parse_directions<
-        typename readlines<
-            cexpr::array::length(test_data), test_data>::type>::type;
+        cexpr::array::readlines_t<
+            cexpr::array::length(test_data), test_data>>::type;
     static_assert(
             std::is_same<
                 split<split_test_1>::type,
