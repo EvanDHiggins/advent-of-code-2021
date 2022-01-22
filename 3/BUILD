@@ -14,6 +14,10 @@ cc_library(
     name = "lib",
     hdrs = ["lib.h"],
     deps = [
+        "//lib/cexpr:array",
+        "//lib/cexpr:list",
+        "//lib/cexpr:string",
+        "//lib/cexpr:math",
     ]
 )
 

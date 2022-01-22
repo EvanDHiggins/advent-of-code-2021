@@ -46,6 +46,32 @@ struct append<val, List<items...>> {
     using type = List<items..., val>;
 };
 
+template<typename val>
+struct append<val, List<>> {
+    using type = List<val>;
+};
+
+/**
+ * prepend
+ *
+ * Prepends val to list.
+ */
+template<typename val, typename list>
+struct prepend;
+
+template<typename val, typename... items>
+struct prepend<val, List<items...>> {
+    using type = List<val, items...>;
+};
+
+template<typename val>
+struct prepend<val, List<>> {
+    using type = List<val>;
+};
+
+template<typename val, typename list>
+using prepend_t = typename prepend<val, list>::type;
+
 template<typename lst>
 struct length;
 
@@ -56,6 +82,21 @@ struct length<List<elems...>> {
 
 template<typename val, typename list>
 using append_t = typename append<val, list>::type;
+
+template<template<typename> typename func, typename list>
+struct fmap;
+
+template<template<typename> typename func, typename elem, typename... elems>
+struct fmap<func, List<elem, elems...>> {
+    using type = prepend_t<
+        typename func<elem>::type,
+        typename fmap<func, List<elems...>>::type>;
+};
+
+template<template<typename> typename func>
+struct fmap<func, List<>> {
+    using type = List<>;
+};
 
 }; // namespace list
 
