@@ -6,4 +6,5 @@ available as compile time constants by the end of compilation.
 To run:
 
 1. Install Bazel.
-2. From anywhere in the project run: `bazel run //1:main`.
+2. Run `export BAZEL_CXXOPTS="std=c++20"`
+3. From anywhere in the project run: `bazel run //1:main`.

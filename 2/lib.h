@@ -17,43 +17,21 @@ using SPACE = String<' '>;
 
 
 template<
-    typename str,
-    int idx,
-    int size,
-    const char (&arr)[size],
-    typename = void>
+    typename str, int idx, int size, const char (&arr)[size], typename = void>
 struct readline_helper;
 
-template<
-    char... chars, 
-    int idx, 
-    int size, 
-    const char (&arr)[size]
->
+template<char... chars, int idx, int size, const char (&arr)[size]>
 struct readline_helper<
-    String<chars...>,
-    idx,
-    size,
-    arr,
-    typename std::enable_if<arr[idx] != '\n' && arr[idx] != '\0'>::type
->  : readline_helper<
-            String<chars..., arr[idx]>,
-            idx + 1,
-            size,
-            arr
-        >
+    String<chars...>, idx, size, arr,
+    std::enable_if_t<arr[idx] != '\n' && arr[idx] != '\0'>>
+  : readline_helper<String<chars..., arr[idx]>, idx + 1, size, arr>
 {};
 
-template<
-    typename str,
-    int idx, 
-    int size, 
-    const char (&arr)[size]
->
+template<typename str, int idx, int size, const char (&arr)[size]>
 struct readline_helper<
     str, idx, size, arr,
-    typename std::enable_if<arr[idx] == '\n' || arr[idx] == '\0'>::type
-> {
+    typename std::enable_if<arr[idx] == '\n' || arr[idx] == '\0'>::type>
+{
     static constexpr int next_index = idx + 1;
     using type = str;
 };
@@ -68,27 +46,16 @@ template<int size, const char (&arr)[size]>
 struct readlines;
 
 template<
-    typename lines,
-    int idx,
-    int size,
-    const char (&arr)[size],
-    typename = void
->
+    typename lines, int idx, int size, const char (&arr)[size],
+    typename = void>
 struct readlines_helper;
 
 template<
-  typename... lines,
-  int idx,
-  int size,
-  const char (&arr)[size]
->
+  typename... lines, int idx, int size, const char (&arr)[size]>
 struct readlines_helper<
-    List<lines...>, 
-    idx,
-    size,
-    arr,
-    typename std::enable_if<arr[idx] != '\0'>::type
-> {
+    List<lines...>, idx, size, arr,
+    std::enable_if_t<arr[idx] != '\0'>>
+{
     using line = readline<idx, size, arr>;
     using type = typename readlines_helper<
             List<lines..., typename line::type>,
@@ -101,7 +68,8 @@ struct readlines_helper<
 template<typename list, int idx, int size, const char (&arr)[size]>
 struct readlines_helper<
     list, idx, size, arr,
-    typename std::enable_if<idx >= size>::type> {
+    std::enable_if_t<idx >= size>>
+{
         using type = list;
 };
 
@@ -120,24 +88,21 @@ struct split_helper;
 // Guards against putting lots of empty strings into our tokens list.
 template<typename tokens, char c, char... rest>
 struct split_helper<
-    tokens, String<>, String<c, rest...>,
-    typename std::enable_if<is_whitespace(c)>::type
->
-    : split_helper<tokens, String<>, String<rest...>> {};
+    tokens, String<>, String<c, rest...>, std::enable_if_t<is_whitespace(c)>>
+  : split_helper<tokens, String<>, String<rest...>>
+{};
+
+template<typename tokens, char c>
+struct split_helper<
+    tokens, String<>, String<c>, std::enable_if_t<is_whitespace(c)>>
+  : split_helper<tokens, String<>, String<>>
+{};
 
 template<typename tokens, char c>
 struct split_helper<
     tokens, String<>, String<c>,
-    typename std::enable_if<is_whitespace(c)>::type
->
-    : split_helper<tokens, String<>, String<>> {};
-
-template<typename tokens, char c>
-struct split_helper<
-    tokens, String<>, String<c>,
-    typename std::enable_if<!is_whitespace(c)>::type
->
-    : split_helper<
+    std::enable_if_t<!is_whitespace(c)>>
+  : split_helper<
         typename cexpr::list::append<String<c>, tokens>::type,
         String<>, String<>>
 {};
