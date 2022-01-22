@@ -33,8 +33,11 @@ struct Nth<0, List<x, xs...>> {
 
 namespace list {
 
-// =====================================================
-// appends val to list.
+/**
+ * append
+ * 
+ * Appends val to list.
+ */
 template<typename val, typename list>
 struct append;
 
@@ -50,6 +53,9 @@ template<typename... elems>
 struct length<List<elems...>> {
     constexpr static int value = sizeof...(elems);
 };
+
+template<typename val, typename list>
+using append_t = typename append<val, list>::type;
 
 }; // namespace list
 

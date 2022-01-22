@@ -103,38 +103,32 @@ struct split_helper<
     tokens, String<>, String<c>,
     std::enable_if_t<!is_whitespace(c)>>
   : split_helper<
-        typename cexpr::list::append<String<c>, tokens>::type,
+        cexpr::list::append_t<String<c>, tokens>,
         String<>, String<>>
 {};
 
 template<typename tokens, typename str>
 struct split_helper<
     tokens, str, String<>,
-    typename std::enable_if<
-        !cexpr::str::is_empty<str>::value>::type
->
-    : split_helper<
-        typename cexpr::list::append<str, tokens>::type,
+    std::enable_if_t<!cexpr::str::is_empty<str>::value>>
+  : split_helper<
+        cexpr::list::append_t<str, tokens>,
         String<>, String<>>
 {};
 
 template<typename tokens, typename str, char c, char... rest>
 struct split_helper<
-    tokens, str, String<c, rest...>,
-    typename std::enable_if<is_whitespace(c)>::type
-> 
+    tokens, str, String<c, rest...>, std::enable_if_t<is_whitespace(c)>> 
  : split_helper<
-    typename cexpr::list::append<str, tokens>::type,
+    cexpr::list::append_t<str, tokens>,
     String<>, String<rest...>>
 {};
 
 template<typename tokens, typename str, char c>
 struct split_helper<
-    tokens, str, String<c>,
-    typename std::enable_if<is_whitespace(c)>::type
-> 
+    tokens, str, String<c>, std::enable_if_t<is_whitespace(c)>> 
   : split_helper<
-        typename cexpr::list::append<str, tokens>::type, String<>, String<>>
+        cexpr::list::append_t<str, tokens>, String<>, String<>>
 {};
 
 template<typename tokens>
@@ -145,9 +139,9 @@ struct split_helper<tokens, String<>, String<>> {
 template<typename tokens, typename str_buffer, char c, char... rest>
 struct split_helper<
     tokens, str_buffer, String<c, rest...>,
-    typename std::enable_if<!is_whitespace(c)>::type
-> : split_helper<
-    tokens, typename cexpr::append<c, str_buffer>::type, String<rest...>>
+    std::enable_if_t<!is_whitespace(c)>>
+  : split_helper<
+        tokens, cexpr::str::append_t<c, str_buffer>, String<rest...>>
 {};
 
 template<typename str>
@@ -175,7 +169,7 @@ struct parse_directions_helper;
 template<typename dirs, typename line, typename... rest>
 struct parse_directions_helper<dirs, List<line, rest...>>
  : parse_directions_helper<
-    typename cexpr::list::append<typename parse_line<line>::type, dirs>::type,
+    cexpr::list::append_t<typename parse_line<line>::type, dirs>,
     List<rest...>>
 {};
 
@@ -183,7 +177,7 @@ template<typename acc, typename line>
 struct parse_directions_helper<acc, List<line>>
 {
     using type =
-        typename cexpr::list::append<typename parse_line<line>::type, acc>::type;
+        cexpr::list::append_t<typename parse_line<line>::type, acc>;
 };
 
 template<typename lines>

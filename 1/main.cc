@@ -39,7 +39,7 @@ struct read_next_int_lstrip;
 template<typename str, int idx, int size, const char (&arr)[size], typename = void>
 struct read_next_int_helper :
     read_next_int_helper<
-        typename append_to_string<arr[idx], str>::type, idx+1, size, arr>
+        cexpr::str::append_t<arr[idx], str>, idx+1, size, arr>
 {};
 
 template<typename str, int idx, int size, const char (&arr)[size]>
@@ -67,35 +67,6 @@ struct read_next_int_lstrip<
 template<int start, int size, const char (&arr)[size]>
 struct read_next_int : read_next_int_lstrip<start, size, arr> {};
 
-
-/**
- * find_numeric_range_from
- * find_numeric_range_from_helper
- */
-template<int start, int end, int size, const char (&arr)[size], typename = void>
-struct find_numeric_range_from_helper;
-
-template<int start, int end, int size, const char (&arr)[size]>
-struct find_numeric_range_from_helper<start, end, size, arr,
-    typename std::enable_if<arr[end] != '\n' && arr[end] != '\0'>::type>
-    : find_numeric_range_from_helper<start, end+1, size, arr>
-{};
-
-template<int start, int end, int size, const char (&arr)[size]>
-struct find_numeric_range_from_helper<start, end, size, arr,
-    typename std::enable_if<arr[end] == '\n' || arr[end] == '\0'>::type>
-{
-    constexpr static int left = start;
-    constexpr static int right = end;
-};
-
-template<int start, int size, const char (&arr)[size]>
-struct find_numeric_range_from;
-
-template<int start, int size, const char (&arr)[size]>
-struct find_numeric_range_from
- : find_numeric_range_from_helper<start, start + 1, size, arr>
-{};
 
 
 template<int... ints>
@@ -254,21 +225,10 @@ constexpr int test_read_next_int() {
 constexpr int tests() {
     test_read_next_int();
     using array::length;
-    using normal_case = find_numeric_range_from<
-        2, length(test_ends_null), test_ends_null>;
-    static_assert(normal_case::left == 2, "Left range is broken.");
-    static_assert(normal_case::right == 5, "Right range is broken.");
-
-    using works_with_null_end = find_numeric_range_from<
-        6, length(test_ends_null), test_ends_null>;
-    static_assert(
-        works_with_null_end::left == 6, "Left range doesn't catch null.");
-    static_assert(
-        works_with_null_end::right == 8, "Right range doesn't catch null.");
 
     static_assert(
             std::is_same<
-                append_to_string<'3', String<'1', '2'>>::type,
+                cexpr::str::append_t<'3', String<'1', '2'>>,
                 String<'1','2','3'>
             >::value,
             "append_to_string is not working.");

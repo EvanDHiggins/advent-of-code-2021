@@ -59,6 +59,9 @@ struct to_int<String<c>> {
 
 
 
+
+namespace str {
+
 /**
  * append
  *
@@ -72,8 +75,16 @@ struct append<to_append, String<cs...>> {
     using type = String<cs..., to_append>;
 };
 
-namespace str {
+template<char c, typename str>
+using append_t = typename append<c, str>::type;
 
+
+
+/**
+ * is_empty
+ *
+ * Assigns ::value to the result.
+ */
 template<typename str>
 struct is_empty {
     constexpr static bool value = false;
