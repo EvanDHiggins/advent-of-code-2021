@@ -9,6 +9,11 @@
 using cexpr::String;
 using cexpr::List;
 
+using FORWARD = String<'f', 'o', 'r', 'w', 'a', 'r', 'd'>;
+using BACKWARD = String<'b', 'a', 'c', 'k', 'w', 'a', 'r', 'd'>;
+using DOWN = String<'d', 'o', 'w', 'n'>;
+using UP = String<'u', 'p'>;
+using SPACE = String<' '>;
 
 
 template<
@@ -127,12 +132,35 @@ struct split_helper<
 >
     : split_helper<tokens, String<>, String<>> {};
 
+template<typename tokens, char c>
+struct split_helper<
+    tokens, String<>, String<c>,
+    typename std::enable_if<!is_whitespace(c)>::type
+>
+    : split_helper<
+        typename cexpr::list::append<String<c>, tokens>::type,
+        String<>, String<>>
+{};
+
+template<typename tokens, typename str>
+struct split_helper<
+    tokens, str, String<>,
+    typename std::enable_if<
+        !cexpr::str::is_empty<str>::value>::type
+>
+    : split_helper<
+        typename cexpr::list::append<str, tokens>::type,
+        String<>, String<>>
+{};
+
 template<typename tokens, typename str, char c, char... rest>
 struct split_helper<
     tokens, str, String<c, rest...>,
     typename std::enable_if<is_whitespace(c)>::type
 > 
- : split_helper<cexpr::list::append<str, tokens>, String<>, String<rest...>>
+ : split_helper<
+    typename cexpr::list::append<str, tokens>::type,
+    String<>, String<rest...>>
 {};
 
 template<typename tokens, typename str, char c>
@@ -140,12 +168,14 @@ struct split_helper<
     tokens, str, String<c>,
     typename std::enable_if<is_whitespace(c)>::type
 > 
-    : split_helper<cexpr::list::append<str, tokens>, String<>, String<>>
+  : split_helper<
+        typename cexpr::list::append<str, tokens>::type, String<>, String<>>
 {};
 
 template<typename tokens>
-struct split_helper<tokens, String<>, String<>>
-    : tokens {};
+struct split_helper<tokens, String<>, String<>> {
+    using type = tokens;
+};
 
 template<typename tokens, typename str_buffer, char c, char... rest>
 struct split_helper<
@@ -161,18 +191,78 @@ struct split : split_helper<List<>, String<>, str> {};
 template<typename dir, int magnitude>
 struct Direction;
 
+template<typename... tokens>
+struct parse_movement;
 
-using parsed_input =
+template<typename dir, typename mag>
+struct parse_movement<List<dir, mag>> {
+    using type = Direction<dir, cexpr::to_int<mag>::value>;
+};
+
+template<typename line>
+struct parse_line : parse_movement<typename split<line>::type> {};
+
+
+
+template<typename dirs, typename list>
+struct parse_directions_helper;
+
+template<typename dirs, typename line, typename... rest>
+struct parse_directions_helper<dirs, List<line, rest...>>
+ : parse_directions_helper<
+    typename cexpr::list::append<typename parse_line<line>::type, dirs>::type,
+    List<rest...>>
+{};
+
+template<typename acc, typename line>
+struct parse_directions_helper<acc, List<line>>
+{
+    using type =
+        typename cexpr::list::append<typename parse_line<line>::type, acc>::type;
+};
+
+template<typename lines>
+struct parse_directions : parse_directions_helper<List<>, lines> {};
+
+template<int pos, int depth, typename... dirs>
+struct solution_helper;
+
+template<int pos, int depth, int delta, typename... dirs>
+struct solution_helper<pos, depth, Direction<FORWARD, delta>, dirs...> 
+  : solution_helper<pos + delta, depth, dirs...> {};
+
+template<int pos, int depth, int delta, typename... dirs>
+struct solution_helper<pos, depth, Direction<BACKWARD, delta>, dirs...> 
+  : solution_helper<pos - delta, depth, dirs...> {};
+
+template<int pos, int depth, int delta, typename... dirs>
+struct solution_helper<pos, depth, Direction<UP, delta>, dirs...> 
+  : solution_helper<pos, depth - delta, dirs...> {};
+
+template<int pos, int depth, int delta, typename... dirs>
+struct solution_helper<pos, depth, Direction<DOWN, delta>, dirs...> 
+  : solution_helper<pos, depth + delta, dirs...> {};
+
+template<int pos, int depth>
+struct solution_helper<pos, depth> {
+    constexpr static int value = pos * depth;
+};
+
+template<typename dir_list>
+struct solution;
+
+template<typename... dirs>
+struct solution<List<dirs...>> : solution_helper<0, 0, dirs...> {};
+
+using lines =
     readlines<cexpr::array::length(PROGRAM_INPUT), PROGRAM_INPUT>::type;
+using directions =
+    parse_directions<lines>::type;
 
-constexpr static int part_one_answer = 0;
+
+
+constexpr static int part_one_answer = solution<directions>::value;
 constexpr static int part_two_answer = 0;
-
-using FORWARD_STR = String<'f', 'o', 'r', 'w', 'a', 'r', 'd'>;
-using BACKWARD_STR = String<'b', 'a', 'c', 'k', 'w', 'a', 'r', 'd'>;
-using DOWN_STR = String<'d', 'o', 'w', 'n'>;
-using UP_STR = String<'u', 'p'>;
-using SPACE = String<' '>;
 
 constexpr static char test_data[] =
 R"(forward 1
@@ -189,7 +279,7 @@ using first_readline = readline<0, length(test_data), test_data>;
 static_assert(
         std::is_same<
             first_readline::type,
-            cexpr::str::concat<FORWARD_STR, SPACE, String<'1'>>::type
+            cexpr::str::concat<FORWARD, SPACE, String<'1'>>::type
         >::value, "");
 static_assert(first_readline::next_index == 10, "");
 using second_readline = readline<
@@ -199,14 +289,14 @@ using second_readline = readline<
 static_assert(
         std::is_same<
             second_readline::type,
-            cexpr::str::concat<BACKWARD_STR, SPACE, String<'1'>>::type
+            cexpr::str::concat<BACKWARD, SPACE, String<'1'>>::type
         >::value, "");
 
 using last_readline = readline<50, length(test_data), test_data>;
 static_assert(
         std::is_same<
             last_readline::type,
-            cexpr::str::concat<UP_STR, SPACE, String<'5'>>::type
+            cexpr::str::concat<UP, SPACE, String<'5'>>::type
         >::value, "");
 // ========== End test readline
 
@@ -217,13 +307,37 @@ constexpr int test() {
         std::is_same<
             readlines<cexpr::array::length(test_data), test_data>::type,
             List<
-                concat<FORWARD_STR, SPACE, String<'1'>>::type,
-                concat<BACKWARD_STR, SPACE, String<'1'>>::type,
-                concat<FORWARD_STR, SPACE, String<'2'>>::type,
-                concat<BACKWARD_STR, SPACE, String<'1'>>::type,
-                concat<DOWN_STR, SPACE, String<'1', '0'>>::type,
-                concat<UP_STR, SPACE, String<'5'>>::type>
+                concat<FORWARD, SPACE, String<'1'>>::type,
+                concat<BACKWARD, SPACE, String<'1'>>::type,
+                concat<FORWARD, SPACE, String<'2'>>::type,
+                concat<BACKWARD, SPACE, String<'1'>>::type,
+                concat<DOWN, SPACE, String<'1', '0'>>::type,
+                concat<UP, SPACE, String<'5'>>::type>
                 >::value,
                 "");
+    using split_test_1 = String<
+        ' ', ' ', 'f', 'o', 'o', ' ', ' ', 'b', ' ', 'a', ' ', ' '>;
+    using parsed_directions = parse_directions<
+        typename readlines<
+            cexpr::array::length(test_data), test_data>::type>::type;
+    static_assert(
+            std::is_same<
+                split<split_test_1>::type,
+                List<String<'f','o','o'>, String<'b'>, String<'a'>>
+            >::value, "");
+    static_assert(
+            std::is_same<
+                parsed_directions,
+                List<
+                    Direction<FORWARD, 1>,
+                    Direction<BACKWARD, 1>,
+                    Direction<FORWARD, 2>,
+                    Direction<BACKWARD, 1>,
+                    Direction<DOWN, 10>,
+                    Direction<UP, 5>
+                >
+            >::value,
+            "");
+    static_assert(solution<parsed_directions>::value == 5, "");
     return 0;
 }

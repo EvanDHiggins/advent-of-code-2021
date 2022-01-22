@@ -73,6 +73,17 @@ struct append<to_append, String<cs...>> {
 };
 
 namespace str {
+
+template<typename str>
+struct is_empty {
+    constexpr static bool value = false;
+};
+
+template<>
+struct is_empty<String<>> {
+    constexpr static bool value = true;
+};
+
 /**
  * concat
  */
