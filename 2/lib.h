@@ -213,15 +213,53 @@ struct solution;
 template<typename... dirs>
 struct solution<List<dirs...>> : solution_helper<0, 0, dirs...> {};
 
+
+
+template<typename dir_list>
+struct solution_part_two;
+
+template<int pos, int depth, int aim, typename... dirs>
+struct sol_part_two_helper;
+
+template<int pos, int depth, int aim, int delta, typename... dirs>
+struct sol_part_two_helper<pos, depth, aim, Direction<FORWARD, delta>, dirs...>
+    : sol_part_two_helper<pos + delta, depth + (aim * delta), aim, dirs...>
+{};
+
+template<int pos, int depth, int aim, int delta, typename... dirs>
+struct sol_part_two_helper<pos, depth, aim, Direction<BACKWARD, delta>, dirs...>
+    : sol_part_two_helper<pos - delta, depth, aim, dirs...>
+{};
+
+template<int pos, int depth, int aim, int delta, typename... dirs>
+struct sol_part_two_helper<pos, depth, aim, Direction<UP, delta>, dirs...>
+    : sol_part_two_helper<pos, depth, aim - delta, dirs...>
+{};
+
+template<int pos, int depth, int aim, int delta, typename... dirs>
+struct sol_part_two_helper<pos, depth, aim, Direction<DOWN, delta>, dirs...>
+    : sol_part_two_helper<pos, depth, aim + delta, dirs...>
+{};
+
+template<int _pos, int _depth, int _aim>
+struct sol_part_two_helper<_pos, _depth, _aim> {
+    constexpr static int depth = _depth;
+    constexpr static int pos = _pos;
+    constexpr static int aim = _aim;
+    constexpr static int value = pos * depth;
+};
+
+template<typename... dirs>
+struct solution_part_two<List<dirs...>> : sol_part_two_helper<0, 0, 0, dirs...>
+{};
+
 using lines =
     readlines<cexpr::array::length(PROGRAM_INPUT), PROGRAM_INPUT>::type;
 using directions =
     parse_directions<lines>::type;
 
-
-
 constexpr static int part_one_answer = solution<directions>::value;
-constexpr static int part_two_answer = 0;
+constexpr static int part_two_answer = solution_part_two<directions>::value;
 
 constexpr static char test_data[] =
 R"(forward 1
