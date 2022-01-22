@@ -60,15 +60,15 @@ struct to_int<String<c>> {
 
 
 /**
- * append_to_string
+ * append
  *
  * Appends c to str.
  */
 template<char c, typename str>
-struct append_to_string;
+struct append;
 
 template<char to_append, char... cs>
-struct append_to_string<to_append, String<cs...>> {
+struct append<to_append, String<cs...>> {
     using type = String<cs..., to_append>;
 };
 

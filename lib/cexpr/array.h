@@ -34,7 +34,7 @@ struct to_typed_char_list_impl
 {
     using type = typename to_typed_char_list_impl<
         /** word_acc_list =*/
-            typename Append<Char<arr[curr_idx]>, word_acc_list>::type, 
+            typename list::append<Char<arr[curr_idx]>, word_acc_list>::type, 
         /** curr_idx =*/ curr_idx + 1,
         size, 
         arr>::type;

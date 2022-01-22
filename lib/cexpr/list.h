@@ -31,17 +31,17 @@ struct Nth<0, List<x, xs...>> {
     using type = x;
 };
 
+namespace list {
+
 // =====================================================
-// Appends val to list.
+// appends val to list.
 template<typename val, typename list>
-struct Append;
+struct append;
 
 template<typename val, typename... items>
-struct Append<val, List<items...>> {
+struct append<val, List<items...>> {
     using type = List<items..., val>;
 };
-
-namespace list {
 
 template<typename lst>
 struct length;
