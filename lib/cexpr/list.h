@@ -126,6 +126,25 @@ struct filter<
   : filter<func, List<rest...>>
 {};
 
+/**
+ * take
+ */
+template<int n, typename lst>
+struct take;
+
+template<int n, typename head, typename... rest>
+struct take<n, List<head, rest...>> {
+    using type = prepend_t<
+            head,
+            typename take<n - 1, List<rest...>>::type
+        >;
+};
+
+template<typename lst>
+struct take<0, lst> {
+    using type = List<>;
+};
+
 
 }; // namespace list
 

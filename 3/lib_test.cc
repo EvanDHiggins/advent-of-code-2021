@@ -52,6 +52,4 @@ using sol2 = solution_pt2<length(sample_input), sample_input>;
 static_assert(std::is_same<sol2::oxygen_rating, IntList<1, 0, 1, 1, 1>>::value);
 static_assert(std::is_same<sol2::co2_rating, IntList<0, 1, 0, 1, 0>>::value);
 
-int main() {
-
-}
+int main() {}
