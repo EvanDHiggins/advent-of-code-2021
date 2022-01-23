@@ -4,7 +4,9 @@
 #include "lib/cexpr/list.h"
 #include "lib/cexpr/math.h"
 #include "lib/cexpr/array.h"
+#include "lib/cexpr/valuelist.h"
 
+using namespace cexpr::valuelist;
 
 // Assumes c represents an integer ascii character.
 constexpr int char_to_int(char c) {
@@ -16,74 +18,6 @@ struct sum {
     constexpr static int value = x + y;
 };
 
-
-template<signed int... ints>
-struct IntList;
-
-template<int n, typename intlist>
-struct nth;
-
-template<int head, int... rest>
-struct nth<0, IntList<head, rest...>> {
-    constexpr static int value = head;
-};
-
-template<int n, int head, int... rest>
-struct nth<n, IntList<head, rest...>> {
-    constexpr static int value = nth<n - 1, IntList<rest...>>::value;
-};
-
-template<int val, typename intlist>
-struct prepend;
-
-template<int val, int... items>
-struct prepend<val, IntList<items...>> {
-    using type = IntList<val, items...>;
-};
-
-template<int val>
-struct prepend<val, cexpr::List<>> {
-    using type = IntList<val>;
-};
-
-template<int val, typename intlist>
-using prepend_t = typename prepend<val, intlist>::type;
-
-
-template<template<int> typename func, typename intlist>
-struct ifmap;
-
-template<template<int> typename func>
-struct ifmap<func, IntList<>> {
-    using type = IntList<>;
-};
-
-template<template<int> typename func, int head, int... rest>
-struct ifmap<func, IntList<head, rest...>> {
-    using type = prepend_t<
-        func<head>::value,
-        typename ifmap<func, IntList<rest...>>::type
-    >;
-};
-
-template<template<int, int> typename func, typename lhs, typename rhs>
-struct zip_int_lists;
-
-template<
-    template<int, int> typename func,
-    int lhead, int... lrest,
-    int rhead, int... rrest>
-struct zip_int_lists<
-    func, IntList<lhead, lrest...>, IntList<rhead, rrest...>> {
-    using type = prepend_t<
-        func<lhead, rhead>::value,
-        typename zip_int_lists<func, IntList<lrest...>, IntList<rrest...>>::type
-    >;
-};
-template<template<int, int> typename func>
-struct zip_int_lists<func, IntList<>, IntList<>> {
-    using type = IntList<>;
-};
 
 template<int i>
 struct negate_zero {
@@ -120,7 +54,7 @@ struct fold_int_lists_aux;
 template<typename acc, typename head, typename... rest>
 struct fold_int_lists_aux<acc, cexpr::List<head, rest...>>
     : fold_int_lists_aux<
-        typename zip_int_lists<sum, acc, head>::type, cexpr::List<rest...>>
+        typename zip<sum, acc, head>::type, cexpr::List<rest...>>
 {};
 
 template<typename acc>

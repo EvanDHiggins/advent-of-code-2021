@@ -9,6 +9,12 @@ cc_binary(
 )
 
 cc_library(
+    name = "valuelist",
+    hdrs = ["valuelist.h"],
+    deps = []
+)
+
+cc_library(
     name = "array_test",
     hdrs = ["array_test.h"],
     deps = [

@@ -18,6 +18,7 @@ cc_library(
         "//lib/cexpr:list",
         "//lib/cexpr:string",
         "//lib/cexpr:math",
+        "//lib/cexpr:valuelist",
     ]
 )
 
