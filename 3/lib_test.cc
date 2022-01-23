@@ -8,7 +8,8 @@ using cexpr::List;
 using cexpr::list::fmap;
 
 constexpr char sample_input[] =
-R"(00100
+R"(
+00100
 11110
 10110
 10111
@@ -21,6 +22,8 @@ R"(00100
 00010
 01010
 )";
+
+//10110
 constexpr static int expected_gamma = 22;
 constexpr static int expected_epsilon = 9;
 
@@ -41,6 +44,13 @@ constexpr static int epsilon =
 
 static_assert(gamma == expected_gamma);
 static_assert(epsilon == expected_epsilon);
+
+
+using sol2 = solution_pt2<length(sample_input), sample_input>;
+
+
+static_assert(std::is_same<sol2::oxygen_rating, IntList<1, 0, 1, 1, 1>>::value);
+static_assert(std::is_same<sol2::co2_rating, IntList<0, 1, 0, 1, 0>>::value);
 
 int main() {
 

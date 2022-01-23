@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 
 namespace cexpr {
 
@@ -97,6 +98,34 @@ template<template<typename> typename func>
 struct fmap<func, List<>> {
     using type = List<>;
 };
+
+/**
+ * filter
+ */
+template<template<typename> typename func, typename list, typename = void>
+struct filter;
+
+template<template<typename> typename func>
+struct filter<func, List<>> {
+    using type = List<>;
+};
+
+template<template<typename> typename func, typename head, typename... rest>
+struct filter<
+    func, List<head, rest...>, std::enable_if_t<func<head>::value>>
+{
+    using type = prepend_t<
+            head,
+            typename filter<func, List<rest...>>::type
+        >;
+};
+
+template<template<typename> typename func, typename head, typename... rest>
+struct filter<
+    func, List<head, rest...>, std::enable_if_t<!func<head>::value>>
+  : filter<func, List<rest...>>
+{};
+
 
 }; // namespace list
 
