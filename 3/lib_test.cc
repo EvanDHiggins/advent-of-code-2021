@@ -39,9 +39,8 @@ constexpr static int gamma =
 constexpr static int epsilon =
     to_int<2, epsilon_bits>::value;
 
-static_assert(std::is_same<comp<gamma, epsilon>::type, List<>>::value);
-//static_assert(std::is_same<epsilon_bits, List<>>::value);
-//static_assert(std::is_same<gamma_bits, List<>>::value);
+static_assert(gamma == expected_gamma);
+static_assert(epsilon == expected_epsilon);
 
 int main() {
 

@@ -10,6 +10,14 @@ aoc_compile_time_binary(
     copts = ["-ftemplate-depth=10000"],
 )
 
+cc_binary(
+    name = "test",
+    srcs = ["lib_test.cc"],
+    deps = [
+        ":lib",
+    ]
+)
+
 cc_library(
     name = "lib",
     hdrs = ["lib.h"],
@@ -22,14 +30,6 @@ cc_library(
         "//lib/cexpr:string",
         "//lib/cexpr:list",
         "//lib/cexpr:array",
-    ]
-)
-
-cc_binary(
-    name = "test",
-    srcs = ["test.cc"],
-    deps = [
-        ":lib",
     ]
 )
 
