@@ -17,6 +17,8 @@ template<
     typename line5>
 struct parse_grid<List<line1, line2, line3, line4, line5>> {
     using type = Grid<
+        // TODO: Fill this in by parsing all the lines into
+        // integer value lists
     >;
 };
 

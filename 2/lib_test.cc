@@ -58,7 +58,7 @@ using parsed_directions = parse_directions<
         cexpr::array::length(test_data), test_data>>::type;
 static_assert(
         std::is_same<
-            split<split_test_1>::type,
+            cexpr::valuelist::split<' ', split_test_1>::type,
             List<String<'f','o','o'>, String<'b'>, String<'a'>>
         >::value, "");
 static_assert(

@@ -265,72 +265,79 @@ constexpr bool is_whitespace(char c) {
     return c == '\n' || c == ' ' || c == '\t';
 }
 
-template<typename tokens, typename str_buffer, typename rest, typename = void>
+template<
+    char on,
+    typename tokens,
+    typename str_buffer,
+    typename rest,
+    typename = void>
 struct split_helper;
 
 // Guards against putting lots of empty strings into our tokens list.
-template<typename tokens, char c, char... rest>
+template<char on, typename tokens, char c, char... rest>
 struct split_helper<
-    tokens, String<>, String<c, rest...>, std::enable_if_t<is_whitespace(c)>>
-  : split_helper<tokens, String<>, String<rest...>>
+    on, tokens, String<>, String<c, rest...>,
+    std::enable_if_t<c == on>>
+  : split_helper<on, tokens, String<>, String<rest...>>
 {};
 
-template<typename tokens, char c>
+template<char on, typename tokens, char c>
 struct split_helper<
-    tokens, String<>, String<c>, std::enable_if_t<is_whitespace(c)>>
-  : split_helper<tokens, String<>, String<>>
+    on, tokens, String<>, String<c>, std::enable_if_t<c == on>>
+  : split_helper<on, tokens, String<>, String<>>
 {};
 
-template<typename tokens, char c>
+template<char on, typename tokens, char c>
 struct split_helper<
-    tokens, String<>, String<c>,
-    std::enable_if_t<!is_whitespace(c)>>
+    on, tokens, String<>, String<c>,
+    std::enable_if_t<c != on>>
   : split_helper<
+        on,
         cexpr::list::append_t<String<c>, tokens>,
         String<>, String<>>
 {};
 
-template<typename tokens, typename str>
+template<char on, typename tokens, typename str>
 struct split_helper<
-    tokens, str, String<>,
+    on, tokens, str, String<>,
     std::enable_if_t<!cexpr::valuelist::is_empty<str>::value>>
   : split_helper<
+        on,
         cexpr::list::append_t<str, tokens>,
         String<>, String<>>
 {};
 
-template<typename tokens, typename str, char c, char... rest>
+template<char on, typename tokens, typename str, char c, char... rest>
 struct split_helper<
-    tokens, str, String<c, rest...>, std::enable_if_t<is_whitespace(c)>> 
+    on, tokens, str, String<c, rest...>, std::enable_if_t<c == on>> 
  : split_helper<
+    on,
     cexpr::list::append_t<str, tokens>,
     String<>, String<rest...>>
 {};
 
-template<typename tokens, typename str, char c>
+template<char on, typename tokens, typename str, char c>
 struct split_helper<
-    tokens, str, String<c>, std::enable_if_t<is_whitespace(c)>> 
+    on, tokens, str, String<c>, std::enable_if_t<c == on>> 
   : split_helper<
-        cexpr::list::append_t<str, tokens>, String<>, String<>>
+        on, cexpr::list::append_t<str, tokens>, String<>, String<>>
 {};
 
-template<typename tokens>
-struct split_helper<tokens, String<>, String<>> {
+template<char on, typename tokens>
+struct split_helper<on, tokens, String<>, String<>> {
     using type = tokens;
 };
 
-template<typename tokens, typename str_buffer, char c, char... rest>
+template<char on, typename tokens, typename str_buffer, char c, char... rest>
 struct split_helper<
-    tokens, str_buffer, String<c, rest...>,
-    std::enable_if_t<!is_whitespace(c)>>
+    on, tokens, str_buffer, String<c, rest...>,
+    std::enable_if_t<c != on>>
   : split_helper<
-        tokens, cexpr::valuelist::append_t<c, str_buffer>, String<rest...>>
+        on, tokens, cexpr::valuelist::append_t<c, str_buffer>, String<rest...>>
 {};
 
-template<typename str>
-struct split : split_helper<List<>, String<>, str> {};
-
-
+template<char on, typename str>
+struct split : split_helper<on, List<>, String<>, str> {};
 
 }; // namespace valuelist
 }; // namespace cexpr

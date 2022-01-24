@@ -27,7 +27,7 @@ R"(
 
 using sol = solution<cexpr::array::length(test_data), test_data>;
 
-static_assert(std::is_same<sol::parsed_input::draws, cexpr::List<>>::value);
-static_assert(std::is_same<sol::parsed_input::boards, cexpr::List<>>::value);
+//static_assert(std::is_same<sol::parsed_input::draws, cexpr::List<>>::value);
+//static_assert(std::is_same<sol::parsed_input::boards, cexpr::List<>>::value);
 
 int main() {}

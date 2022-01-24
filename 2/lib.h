@@ -30,7 +30,7 @@ struct parse_movement<List<dir, mag>> {
 
 template<typename line>
 struct parse_line
-    : parse_movement<typename cexpr::valuelist::split<line>::type> {};
+    : parse_movement<typename cexpr::valuelist::split<' ', line>::type> {};
 
 
 
