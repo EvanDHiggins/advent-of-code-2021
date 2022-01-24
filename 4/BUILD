@@ -16,7 +16,6 @@ cc_library(
     deps = [
         "//lib/cexpr:array",
         "//lib/cexpr:list",
-        "//lib/cexpr:string",
         "//lib/cexpr:math",
     ]
 )

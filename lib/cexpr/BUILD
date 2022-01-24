@@ -11,7 +11,9 @@ cc_binary(
 cc_library(
     name = "valuelist",
     hdrs = ["valuelist.h"],
-    deps = []
+    deps = [
+        ":math"
+    ]
 )
 
 cc_library(
@@ -19,7 +21,6 @@ cc_library(
     hdrs = ["array_test.h"],
     deps = [
         ":array",
-        ":string",
     ]
 )
 
@@ -34,21 +35,13 @@ cc_library(
     deps = [
         "//lib/cexpr:list",
         "//lib/cexpr:primitives",
-        "//lib/cexpr:string",
+        "//lib/cexpr:valuelist"
     ]
 )
 
 cc_library(
     name = "primitives",
     hdrs = ["primitives.h"],
-)
-
-cc_library(
-    name = "string",
-    hdrs = ["string.h"],
-    deps = [
-        "//lib/cexpr:math",
-    ]
 )
 
 cc_library(

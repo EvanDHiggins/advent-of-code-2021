@@ -1,12 +1,12 @@
 #pragma once
 
-#include "lib/cexpr/string.h"
+#include "lib/cexpr/valuelist.h"
 #include "lib/cexpr/list.h"
 #include "lib/cexpr/array.h"
 #include "2/input.h"
 
 
-using cexpr::String;
+using cexpr::valuelist::String;
 using cexpr::List;
 
 using FORWARD = String<'f', 'o', 'r', 'w', 'a', 'r', 'd'>;
@@ -50,7 +50,7 @@ struct split_helper<
 template<typename tokens, typename str>
 struct split_helper<
     tokens, str, String<>,
-    std::enable_if_t<!cexpr::str::is_empty<str>::value>>
+    std::enable_if_t<!cexpr::valuelist::is_empty<str>::value>>
   : split_helper<
         cexpr::list::append_t<str, tokens>,
         String<>, String<>>
@@ -81,7 +81,7 @@ struct split_helper<
     tokens, str_buffer, String<c, rest...>,
     std::enable_if_t<!is_whitespace(c)>>
   : split_helper<
-        tokens, cexpr::str::append_t<c, str_buffer>, String<rest...>>
+        tokens, cexpr::valuelist::append_t<c, str_buffer>, String<rest...>>
 {};
 
 template<typename str>
@@ -95,7 +95,7 @@ struct parse_movement;
 
 template<typename dir, typename mag>
 struct parse_movement<List<dir, mag>> {
-    using type = Direction<dir, cexpr::to_int<mag>::value>;
+    using type = Direction<dir, cexpr::valuelist::to_int<10, mag>::value>;
 };
 
 template<typename line>

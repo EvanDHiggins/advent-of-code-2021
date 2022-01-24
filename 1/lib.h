@@ -1,11 +1,12 @@
 #include <iostream>
 #include <utility>
 #include "lib/cexpr/list.h"
+#include "lib/cexpr/valuelist.h"
 #include "lib/cexpr/array.h"
 #include "lib/cexpr/primitives.h"
-#include "lib/cexpr/string.h"
 #include "lib/cexpr/math.h"
 using namespace cexpr;
+using cexpr::valuelist::String;
 
 /**
  * read_next_int
@@ -37,7 +38,7 @@ template<
     typename str, int idx, int size, const char (&arr)[size], typename = void>
 struct read_next_int_helper :
     read_next_int_helper<
-        cexpr::str::append_t<arr[idx], str>, idx+1, size, arr>
+        cexpr::valuelist::append_t<arr[idx], str>, idx+1, size, arr>
 {};
 
 template<typename str, int idx, int size, const char (&arr)[size]>
@@ -45,7 +46,7 @@ struct read_next_int_helper<
     str, idx, size, arr,
     std::enable_if_t<arr[idx] == '\n' || arr[idx] == '\0'>
 > {
-    constexpr static int value = to_int<str>::value;
+    constexpr static int value = cexpr::valuelist::to_int<10, str>::value;
     constexpr static int last_seen_idx = idx;
 };
 
@@ -67,8 +68,7 @@ struct read_next_int : read_next_int_lstrip<start, size, arr> {};
 
 
 
-template<int... ints>
-struct IntList;
+using cexpr::valuelist::ValueList;
 
 /**
  * parse_file_to_int_list
@@ -92,12 +92,12 @@ struct parse_file_to_int_list_helper<
 
 template<int... ints, int idx, int size, const char (&arr)[size]>
 struct parse_file_to_int_list_helper<
-    IntList<ints...>, idx, size, arr,
+    ValueList<ints...>, idx, size, arr,
     std::enable_if_t<arr[idx] != '\0' && arr[idx+1] != '\0'>>
 {
     using next_int_t = read_next_int<idx, size, arr>;
     using type = typename parse_file_to_int_list_helper<
-        IntList<ints..., next_int_t::value>,
+        ValueList<ints..., next_int_t::value>,
         next_int_t::last_seen_idx,
         size,
         arr
@@ -107,7 +107,7 @@ struct parse_file_to_int_list_helper<
 
 template<int size, const char (&arr)[size]>
 struct parse_file_to_int_list 
-    : parse_file_to_int_list_helper<IntList<>, 0, size, arr>
+    : parse_file_to_int_list_helper<ValueList<>, 0, size, arr>
 {};
 
 
@@ -116,7 +116,7 @@ struct parse_file_to_int_list
  * count_increases
  * count_increases_aux
  *
- * Provided an IntList, returns the number of consecutive pairs of numbers are
+ * Provided an ValueList, returns the number of consecutive pairs of numbers are
  * increasing.
  */
 template<typename int_list>
@@ -126,18 +126,18 @@ template<int count, typename int_list>
 struct count_increases_aux;
 
 template<int count, int first, int second, int... rest>
-struct count_increases_aux<count, IntList<first, second, rest...>>
+struct count_increases_aux<count, ValueList<first, second, rest...>>
     : count_increases_aux<
-        count + (int)(first < second), IntList<second, rest...>>
+        count + (int)(first < second), ValueList<second, rest...>>
 {};
 
 template<int count, int first, int second>
-struct count_increases_aux<count, IntList<first, second>>
-    : count_increases_aux<count + (int)(first < second), IntList<>>
+struct count_increases_aux<count, ValueList<first, second>>
+    : count_increases_aux<count + (int)(first < second), ValueList<>>
 {};
 
 template<int count>
-struct count_increases_aux<count, IntList<>> {
+struct count_increases_aux<count, ValueList<>> {
     constexpr static int value = count;
 };
 
@@ -150,7 +150,7 @@ struct count_increases
  * count_increases_by_window
  * count_increases_by_window_aux
  *
- * Provided an IntList, returns the number of consecutive pairs of numbers are
+ * Provided an ValueList, returns the number of consecutive pairs of numbers are
  * increasing.
  */
 template<typename int_list>
@@ -161,22 +161,22 @@ struct count_increases_by_window_aux;
 
 template<int count, int first, int second, int third, int fourth, int... rest>
 struct count_increases_by_window_aux<
-    count, IntList<first, second, third, fourth, rest...>>
+    count, ValueList<first, second, third, fourth, rest...>>
   : count_increases_by_window_aux<
         count + (int)((first + second + third) < (second + third + fourth)),
-        IntList<second, third, fourth, rest...>>
+        ValueList<second, third, fourth, rest...>>
 {};
 
 template<int count, int first, int second, int third, int fourth>
 struct count_increases_by_window_aux<
-    count, IntList<first, second, third, fourth>>
+    count, ValueList<first, second, third, fourth>>
   : count_increases_by_window_aux<
         count + (int)((first + second + third) < (second + third + fourth)),
-        IntList<>>
+        ValueList<>>
 {};
 
 template<int count>
-struct count_increases_by_window_aux<count, IntList<>> {
+struct count_increases_by_window_aux<count, ValueList<>> {
     constexpr static int value = count;
 };
 

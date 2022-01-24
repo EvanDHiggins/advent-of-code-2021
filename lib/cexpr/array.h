@@ -5,7 +5,7 @@
 
 #include "lib/cexpr/list.h"
 #include "lib/cexpr/primitives.h"
-#include "lib/cexpr/string.h"
+#include "lib/cexpr/valuelist.h"
 
 namespace cexpr {
 namespace array {
@@ -60,7 +60,7 @@ struct to_typed_char_list {
 /**
  * array_substring
  *
- * array_substring<start, end, size, arr>::type is a String containing
+ * array_substring<start, end, size, arr>::type is a cexpr::valuelist::String containing
  * the characters from arr in [start, end).
  */
 template<typename str, int start, int end, int size, const char (&arr)[size], typename = void>
@@ -73,7 +73,7 @@ struct array_substring_helper<str, idx, idx, size, arr> {
 
 template<char... cs, int start, int end, int size, const char (&arr)[size]>
 struct array_substring_helper<
-    String<cs...>,
+    cexpr::valuelist::String<cs...>,
     start,
     end,
     size,
@@ -81,7 +81,7 @@ struct array_substring_helper<
     typename std::enable_if<start != end>::type
 > {
     using type = typename array_substring_helper<
-            String<cs..., arr[start]>,
+            cexpr::valuelist::String<cs..., arr[start]>,
             start + 1,
             end,
             size,
@@ -92,7 +92,7 @@ struct array_substring_helper<
 template<int start, int end, int size, const char (&arr)[size]>
 struct array_substring {
     using type = typename array_substring_helper<
-        String<>,
+        cexpr::valuelist::String<>,
         start,
         end,
         size,
@@ -105,7 +105,7 @@ struct array_substring {
  *
  * Auxiliary function to serve readlines. Prefer to use that instead.
  *
- * Provides a typedef, type, which contains a String corresponding to the
+ * Provides a typedef, type, which contains a cexpr::valuelist::String corresponding to the
  * characters from idx until the next '\n' or '\0' character.
  *
  * Also provides a constexpr int, next_index, which represents the next unread
@@ -118,9 +118,9 @@ struct readline_helper;
 
 template<char... chars, int idx, int size, const char (&arr)[size]>
 struct readline_helper<
-    String<chars...>, idx, size, arr,
+    cexpr::valuelist::String<chars...>, idx, size, arr,
     std::enable_if_t<arr[idx] != '\n' && arr[idx] != '\0'>>
-  : readline_helper<String<chars..., arr[idx]>, idx + 1, size, arr>
+  : readline_helper<cexpr::valuelist::String<chars..., arr[idx]>, idx + 1, size, arr>
 {};
 
 template<typename str, int idx, int size, const char (&arr)[size]>
@@ -133,7 +133,7 @@ struct readline_helper<
 };
 
 template<int start, int size, const char (&arr)[size]>
-struct readline : readline_helper<String<>, start, size, arr> {};
+struct readline : readline_helper<cexpr::valuelist::String<>, start, size, arr> {};
 
 /**
  * readlines

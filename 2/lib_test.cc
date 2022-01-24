@@ -15,7 +15,7 @@ using first_readline = cexpr::array::readline<0, length(test_data), test_data>;
 static_assert(
         std::is_same<
             first_readline::type,
-            cexpr::str::concat<FORWARD, SPACE, String<'1'>>::type
+            cexpr::valuelist::concat<FORWARD, SPACE, String<'1'>>::type
         >::value, "");
 static_assert(first_readline::next_index == 10, "");
 using second_readline = cexpr::array::readline<
@@ -25,20 +25,20 @@ using second_readline = cexpr::array::readline<
 static_assert(
         std::is_same<
             second_readline::type,
-            cexpr::str::concat<BACKWARD, SPACE, String<'1'>>::type
+            cexpr::valuelist::concat<BACKWARD, SPACE, String<'1'>>::type
         >::value, "");
 
 using last_readline = cexpr::array::readline<50, length(test_data), test_data>;
 static_assert(
         std::is_same<
             last_readline::type,
-            cexpr::str::concat<UP, SPACE, String<'5'>>::type
+            cexpr::valuelist::concat<UP, SPACE, String<'5'>>::type
         >::value, "");
 // ========== End test readline
 
 
-using cexpr::str::concat;
-using cexpr::String;
+using cexpr::valuelist::concat;
+using cexpr::valuelist::String;
 static_assert(
     std::is_same<
         cexpr::array::readlines_t<cexpr::array::length(test_data), test_data>,

@@ -1,6 +1,5 @@
 #pragma once
 #include <utility>
-#include "lib/cexpr/string.h"
 #include "lib/cexpr/list.h"
 #include "lib/cexpr/math.h"
 #include "lib/cexpr/array.h"
@@ -41,8 +40,8 @@ template<typename str>
 struct str_to_intlist;
 
 template<char... cs>
-struct str_to_intlist<cexpr::String<cs...>> {
-    using type = IntList<char_to_int(cs)...>;
+struct str_to_intlist<cexpr::valuelist::String<cs...>> {
+    using type = ValueList<char_to_int(cs)...>;
 };
 
 template<typename list>
@@ -68,6 +67,7 @@ struct fold_int_lists<cexpr::List<head, rest...>>
     : fold_int_lists_aux<
         typename ifmap<zero, head>::type, cexpr::List<head, rest...>>
 {};
+
 
 template<int i, typename = void>
 struct compute_gamma_aux;
@@ -101,21 +101,6 @@ struct compute_epsilon_aux<i, std::enable_if_t<(i > 0)>> {
 template<int i>
 struct compute_epsilon : compute_epsilon_aux<i> {};
 
-
-template<int radix, typename intlist>
-struct to_int;
-
-template<int radix, int i, int... is>
-struct to_int<radix, IntList<i, is...>> {
-    constexpr static int value =
-        (i * cexpr::math::pow<radix, sizeof...(is)>::value)
-        + to_int<radix, IntList<is...>>::value;
-};
-
-template<int radix, int i>
-struct to_int<radix, IntList<i>> {
-    constexpr static int value = i;
-};
 
 
 template<int x, int y, typename = void>

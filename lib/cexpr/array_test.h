@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lib/cexpr/array.h"
-#include "lib/cexpr/string.h"
+#include "lib/cexpr/valuelist.h"
 
 constexpr static char readline_test_data[] = R"(
 
@@ -35,9 +35,9 @@ world
 blah)";
 
 using expected = cexpr::List<
-    cexpr::String<'h', 'e', 'l', 'l', 'o'>,
-    cexpr::String<'w', 'o', 'r', 'l', 'd'>,
-    cexpr::String<'b', 'l', 'a', 'h'>
+    cexpr::valuelist::String<'h', 'e', 'l', 'l', 'o'>,
+    cexpr::valuelist::String<'w', 'o', 'r', 'l', 'd'>,
+    cexpr::valuelist::String<'b', 'l', 'a', 'h'>
 >;
 
 namespace {
