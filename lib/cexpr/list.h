@@ -129,11 +129,13 @@ struct filter<
 /**
  * take
  */
-template<int n, typename lst>
+template<int n, typename lst, typename = void>
 struct take;
 
 template<int n, typename head, typename... rest>
-struct take<n, List<head, rest...>> {
+struct take<
+    n, List<head, rest...>,
+    std::enable_if_t<n != 0>> {
     using type = prepend_t<
             head,
             typename take<n - 1, List<rest...>>::type
@@ -144,6 +146,43 @@ template<typename lst>
 struct take<0, lst> {
     using type = List<>;
 };
+
+template<int n>
+struct take<n, List<>, std::enable_if<n != 0>> {
+    using type = List<>;
+};
+
+template<int n, typename lst>
+using take_t = typename take<n, lst>::type;
+
+
+/**
+ * drop
+ *
+ * Returns a list of the first n elements of lst.
+ */
+template<int n, typename lst, typename = void>
+struct drop;
+
+template<int n, typename elem, typename... elems>
+struct drop<
+    n, List<elem, elems...>,
+    std::enable_if_t<n != 0>> {
+    using type = typename drop<n - 1, List<elems...>>::type;
+};
+
+template<int n>
+struct drop<n, List<>, std::enable_if_t<n != 0>> {
+    using type = List<>;
+};
+
+template<typename lst>
+struct drop<0, lst> {
+    using type = lst;
+};
+
+template<int n, typename lst>
+using drop_t = typename drop<n, lst>::type;
 
 
 }; // namespace list

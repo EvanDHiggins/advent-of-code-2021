@@ -174,6 +174,61 @@ struct concat<ValueList<lst1_elems...>, ValueList<lst2_elems...>> {
 };
 
 /**
+ * take
+ *
+ * Returns a list of the first n elements of lst.
+ */
+template<int n, typename lst>
+struct take;
+
+template<int n, auto elem, auto... elems>
+struct take<n, ValueList<elem, elems...>> {
+    using type = prepend_t<
+        elem,
+        take<n - 1, ValueList<elems...>>
+    >;
+};
+
+template<int n>
+struct take<n, ValueList<>> {
+    using type = ValueList<>;
+};
+
+template<typename lst>
+struct take<0, lst> {
+    using type = ValueList<>;
+};
+
+template<int n, typename lst>
+using take_t = typename take<n, lst>::type;
+
+/**
+ * drop
+ *
+ * Returns a list of the first n elements of lst.
+ */
+template<int n, typename lst>
+struct drop;
+
+template<int n, auto elem, auto... elems>
+struct drop<n, ValueList<elem, elems...>> {
+    using type = typename drop<n - 1, ValueList<elems...>>::type;
+};
+
+template<int n>
+struct drop<n, ValueList<>> {
+    using type = ValueList<>;
+};
+
+template<typename lst>
+struct drop<0, lst> {
+    using type = lst;
+};
+
+template<int n, typename lst>
+using drop_t = typename drop<n, lst>::type;
+
+/**
  * reverse
  *
  * Reversed the characters in lst.
@@ -200,6 +255,8 @@ template<typename lst>
 struct reverse {
     using type = typename reverse_helper<ValueList<>, lst>::type;
 };
+
+
 
 }; // namespace valuelist
 }; // namespace cexpr
