@@ -12,6 +12,7 @@ cc_library(
     name = "valuelist",
     hdrs = ["valuelist.h"],
     deps = [
+        ":list",
         ":math"
     ]
 )
