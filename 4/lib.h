@@ -153,38 +153,11 @@ template<typename grid>
 using check_columns_t = typename check_columns<grid>::type;
 
 template<typename grid>
-struct check_diag {
-    using left_diag = List<
-        get_cell_t<0, 0, grid>,
-        get_cell_t<1, 1, grid>,
-        get_cell_t<2, 2, grid>,
-        get_cell_t<3, 3, grid>,
-        get_cell_t<4, 4, grid>>;
-    using right_diag = List<
-        get_cell_t<0, 4, grid>,
-        get_cell_t<1, 3, grid>,
-        get_cell_t<2, 2, grid>,
-        get_cell_t<3, 1, grid>,
-        get_cell_t<4, 0, grid>>;
-    using type =
-        std::integral_constant<
-            bool,
-            check_row<left_diag>::type::value
-                || check_row<right_diag>::type::value>;
-};
-
-template<typename grid>
-using check_diag_t = typename check_diag<grid>::type;
-
-
-template<typename grid>
 struct has_bingo {
     constexpr static bool value =
-        //check_diag_t<grid>::value ||
         check_rows_t<grid>::value
         || check_columns_t<grid>::value;
 };
-
 
 
 template<typename lines>
