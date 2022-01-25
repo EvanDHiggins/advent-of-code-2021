@@ -180,8 +180,8 @@ using check_diag_t = typename check_diag<grid>::type;
 template<typename grid>
 struct has_bingo {
     constexpr static bool value =
-        check_diag_t<grid>::value
-        || check_rows_t<grid>::value
+        //check_diag_t<grid>::value ||
+        check_rows_t<grid>::value
         || check_columns_t<grid>::value;
 };
 
@@ -351,43 +351,38 @@ struct find_highscore {
 template<typename draws, typename cards>
 struct run_game_until_winner;
 
-template<int highscore, typename draws, typename cards, typename = void>
+template<int last_draw, int highscore, typename draws, typename cards, typename = void>
 struct run_game_until_winner_aux;
 
-// I have verified that get_bingo_card_value works, but I still can't figure
-// out why I get the wrong answer...
-
-template<int draw, int... draws, typename cards>
+template<int last_draw, int draw, int... draws, typename cards>
 struct run_game_until_winner_aux<
-    0, ValueList<draw, draws...>, cards> {
+    last_draw, 0, ValueList<draw, draws...>, cards> {
 
     template<typename card>
     using my_drawer = typename drawer<draw>::template func<card>;
 
     using new_cards = cexpr::list::fmap_t<my_drawer, cards>;
     using type = typename run_game_until_winner_aux<
+            draw,
             find_highscore<new_cards>::value,
             ValueList<draws...>,
             new_cards
         >::type;
 };
 
-template<int highscore, typename draws, typename cards>
-struct run_game_until_winner_aux<highscore, draws, cards, std::enable_if_t<highscore != 0>> {
-    using type = std::integral_constant<int, highscore>;
+template<int last_draw, int highscore, typename draws, typename cards>
+struct run_game_until_winner_aux<last_draw, highscore, draws, cards, std::enable_if_t<highscore != 0>> {
+    using type = std::integral_constant<int, highscore * last_draw>;
 };
 
 template<typename draws, typename cards>
-struct run_game_until_winner : run_game_until_winner_aux<0, draws, cards> {};
+struct run_game_until_winner : run_game_until_winner_aux<0, 0, draws, cards> {};
 
 template<int size, const char (&arr)[size]>
 struct solution {
     using parsed_input = parse_input<size, arr>;
-    //using non_value_answer = run_game_until_winner<
-        //typename parsed_input::draws, typename parsed_input::boards>;
-    //constexpr static int answer = non_value_answer::type::value;
-    //constexpr static int answer = run_game_until_winner<
-        //typename parsed_input::draws, typename parsed_input::boards>::type::value;
+    constexpr static int answer = run_game_until_winner<
+        typename parsed_input::draws, typename parsed_input::boards>::type::value;
 };
 
 template<int size, const char (&arr)[size]>

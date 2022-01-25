@@ -78,11 +78,11 @@ static_assert(
 
 static_assert(check_rows_t<first_row_complete>::value);
 static_assert(check_columns_t<second_col_complete>::value);
-static_assert(check_diag_t<left_diag_complete>::value);
-static_assert(check_diag_t<left_diag_complete>::value);
+//static_assert(check_diag_t<left_diag_complete>::value);
+//static_assert(check_diag_t<left_diag_complete>::value);
 static_assert(has_bingo<first_row_complete>::value);
 static_assert(has_bingo<second_col_complete>::value);
-static_assert(has_bingo<right_diag_complete>::value);
+//static_assert(has_bingo<right_diag_complete>::value);
 //static_assert(run_game_until_winner<actual_draws, winning_board>::type::value);
 static_assert(std::is_same<
             std::integral_constant<int, 0>,
@@ -124,10 +124,10 @@ using ten = next_iter<nine>;
 using eleven = next_iter<ten>;
 using twelve = next_iter<eleven>;
 
-static_assert(std::is_same<std::integral_constant<int, 0>, twelve::highscore>::value);
-static_assert(std::is_same<twelve::new_cards, List<>>::value);
-static_assert(std::is_same<twelve::next_draws, List<>>::value);
-static_assert(std::is_same<get_bingo_card_value<cexpr::list::head_t<twelve::new_cards>>, std::integral_constant<int, 0>>::value);
+//static_assert(std::is_same<std::integral_constant<int, 0>, twelve::highscore>::value);
+//static_assert(std::is_same<twelve::new_cards, List<>>::value);
+//static_assert(std::is_same<twelve::next_draws, List<>>::value);
+//static_assert(std::is_same<get_bingo_card_value<cexpr::list::head_t<twelve::new_cards>>, std::integral_constant<int, 0>>::value);
 
 
 //using final_board =
@@ -170,10 +170,10 @@ static_assert(std::is_same<get_bingo_card_value<cexpr::list::head_t<twelve::new_
             //std::integral_constant<int, 0>,
             //run_game_until_winner<actual_draws, winning_board>::type
         //>::value);
-//static_assert(std::is_same<
-            //std::integral_constant<int, sol::answer>,
-            //std::integral_constant<int, 4512>
-        //>::value);
+static_assert(std::is_same<
+            std::integral_constant<int, sol::answer>,
+            std::integral_constant<int, 4512>
+        >::value);
 //static_assert(std::is_same<sol::parsed_input::boards, cexpr::List<>>::value);
 
 int main() {}
