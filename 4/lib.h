@@ -3,23 +3,214 @@
 using namespace cexpr;
 using cexpr::valuelist::ValueList;
 
-template<typename... lists>
-using Grid = List<lists...>;
+template<typename _rows>
+struct Grid {
+    using rows = _rows;
+};
+
+template<int x, int y, typename grid>
+struct get_cell {
+    using type = cexpr::list::nth_t<x, cexpr::list::nth_t<y, typename grid::rows>>;
+};
+
+template<int x, int y, typename grid>
+using get_cell_t = typename get_cell<x, y, grid>::type;
+
+template<bool _drawn, int _value>
+struct Cell {
+    constexpr static bool drawn = _drawn;
+    constexpr static int value = _value;
+};
+
+template<typename cell>
+using draw = Cell<true, cell::value>;
+
+// Indexed from the top left
+template<int x, int y, typename grid>
+struct draw_cell;
+
+template<int x, int y, typename rows>
+struct draw_cell<x, y, Grid<rows>> {
+    using row = cexpr::list::nth_t<y, rows>;
+    using type = Grid<cexpr::list::set_nth_t<y,
+          cexpr::list::set_nth_t<
+              x, draw<cexpr::list::nth_t<x, row>>, row>,
+          rows>>;
+};
+
+template<int x, int y, typename grid>
+using draw_cell_t = typename draw_cell<x, y, grid>::type;
+
+template<int n, typename grid>
+struct draw_number;
+
+template<int n>
+struct drawer {
+    template<typename grid>
+    struct func {
+        using type = typename draw_number<n, grid>::type;
+    };
+};
+
+template<int n, typename row, typename = void>
+struct draw_number_in_row;
+
+template<int n, typename x, typename... xs>
+struct draw_number_in_row<
+    n, List<x, xs...>, std::enable_if_t<x::value == n>> {
+    using type = cexpr::list::prepend_t<
+            draw<x>,
+            typename draw_number_in_row<n, List<xs...>>::type
+        >;
+};
+
+template<int n, typename x, typename... xs>
+struct draw_number_in_row<
+    n, List<x, xs...>, std::enable_if_t<x::value != n>> {
+    using type = cexpr::list::prepend_t<
+            x,
+            typename draw_number_in_row<n, List<xs...>>::type
+        >;
+};
+
+template<int n>
+struct draw_number_in_row<n, List<>> {
+    using type = List<>;
+};
+
+template<int n, typename grid>
+struct draw_number {
+    template<typename row>
+    using draw_n = draw_number_in_row<n, row>;
+    using type = Grid<
+            cexpr::list::fmap_t<
+                draw_n,
+                typename grid::rows
+            >
+        >;
+};
+
+template<typename cell>
+struct is_drawn {
+    using type = std::integral_constant<bool, cell::drawn>;
+};
+
+/**
+ * check_rows
+ */
+template<typename row>
+struct check_row {
+    using type = cexpr::list::all_t<is_drawn, row>;
+};
+
+template<typename grid>
+struct check_rows;
+
+template<typename rows>
+struct check_rows<Grid<rows>> {
+    using type = typename cexpr::list::any_t<
+        check_row,
+        rows>;
+};
+
+template<typename grid>
+using check_rows_t = typename check_rows<grid>::type;
+
+
+template<typename grid>
+struct check_columns;
+
+template<typename lst>
+using take_one = cexpr::list::take<1, lst>;
+
+template<int n, typename grid>
+struct nth_column;
+
+template<int n, typename rows>
+struct nth_column<n, Grid<rows>> {
+    template<typename lst>
+    using take_n = cexpr::list::nth<n, lst>;
+    using type = cexpr::list::fmap_t<take_n, rows>;
+};
+
+template<int n>
+struct check_type;
+
+// Transforms columns into rows (lists) and checks them with check_row.
+template<typename grid>
+struct check_columns {
+    template<int col>
+    using int_to_col = nth_column<col, grid>;
+    using type = 
+        typename cexpr::list::any_t<
+            check_row,
+            cexpr::valuelist::fmap_to_list_t<
+                int_to_col,
+                cexpr::valuelist::ValueList<0, 1, 2, 3, 4>>>;
+};
+
+template<typename grid>
+using check_columns_t = typename check_columns<grid>::type;
+
+template<typename grid>
+struct check_diag {
+    using left_diag = List<
+        get_cell_t<0, 0, grid>,
+        get_cell_t<1, 1, grid>,
+        get_cell_t<2, 2, grid>,
+        get_cell_t<3, 3, grid>,
+        get_cell_t<4, 4, grid>>;
+    using right_diag = List<
+        get_cell_t<0, 4, grid>,
+        get_cell_t<1, 3, grid>,
+        get_cell_t<2, 2, grid>,
+        get_cell_t<3, 1, grid>,
+        get_cell_t<4, 0, grid>>;
+    using type =
+        std::integral_constant<
+            bool,
+            check_row<left_diag>::type::value
+                || check_row<right_diag>::type::value>;
+};
+
+template<typename grid>
+using check_diag_t = typename check_diag<grid>::type;
+
+
+template<typename grid>
+struct has_bingo {
+    constexpr static bool value =
+        check_diag_t<grid>::value
+        || check_rows_t<grid>::value
+        || check_columns_t<grid>::value;
+};
+
+
 
 template<typename lines>
 struct parse_grid;
 
-template<
-    typename line1,
-    typename line2,
-    typename line3,
-    typename line4,
-    typename line5>
-struct parse_grid<List<line1, line2, line3, line4, line5>> {
-    using type = Grid<
-        // TODO: Fill this in by parsing all the lines into
-        // integer value lists
-    >;
+template<int value>
+struct new_cell {
+    using type = Cell<false, value>;
+};
+
+template<typename str>
+using to_base_ten = cexpr::valuelist::to_int<10, str>;
+
+template<typename str>
+struct parse_line {
+    using type =
+        cexpr::valuelist::fmap_to_list_t<
+            new_cell,
+            cexpr::valuelist::fmap_to_value_t<
+                to_base_ten,
+                cexpr::valuelist::split_t<' ', str>>>;
+};
+
+template<typename lines>
+struct parse_grid {
+    using type = Grid<cexpr::list::fmap_t<parse_line, lines>>;
 };
 
 template<typename lines>
@@ -38,17 +229,165 @@ struct read_boards<List<>> {
 template<int size, const char (&arr)[size]>
 struct parse_input {
     using lines = typename cexpr::array::readlines<size, arr>::type;
-    using draws = list::take_t<1, lines>;
+    using draws =
+        cexpr::valuelist::fmap_to_value_t<
+            to_base_ten,
+            cexpr::valuelist::split_t<',', list::head_t<lines>>>;
     using boards = typename read_boards<list::drop_t<1, lines>>::type;
 
 };
 
+template<template<typename> typename func, typename grid>
+struct gmap {
+    template<typename row>
+    struct map_row {
+        using type = cexpr::list::fmap_t<func, row>;
+    };
+    using type = Grid<
+            cexpr::list::fmap_t<map_row, typename grid::rows>
+        >;
+};
+
+template<typename cell>
+struct cell_to_score_value;
+
+template<int value>
+struct cell_to_score_value<Cell<true, value>> {
+    using type = std::integral_constant<int, 0>;
+};
+
+template<int value>
+struct cell_to_score_value<Cell<false, value>> {
+    using type = std::integral_constant<int, value>;
+};
+
+template<typename lhs, typename rhs>
+struct sum {
+    using type = std::integral_constant<int, lhs::value + rhs::value>;
+};
+
+template<typename t, typename r, typename = void>
+struct comp;
+
+template<typename t, typename r>
+struct comp<t, r, std::enable_if_t<std::is_same<t, r>::value>> {};
+
+template<typename grid>
+struct count_undrawn {
+    using int_board = typename gmap<cell_to_score_value, grid>::type;
+
+    template<typename before, typename after, typename = void>
+    struct maybe_print_boards;
+
+    template<typename before, typename after>
+    struct maybe_print_boards<before, after, std::enable_if_t<has_bingo<before>::value>> {
+        using t = comp<before, after>;
+    };
+
+    template<typename before, typename after>
+    struct maybe_print_boards<before, after, std::enable_if_t<!has_bingo<before>::value>> {
+        using t = comp<before, after>;
+    };
+    using f = maybe_print_boards<grid, int_board>;
+
+
+    template<typename row>
+    struct sum_row {
+        using type = cexpr::list::lfold_t<
+            sum, std::integral_constant<int, 0>, row>;
+    };
+    using type = cexpr::list::lfold_t<
+        sum,
+        std::integral_constant<int, 0>,
+        cexpr::list::fmap_t<sum_row, typename int_board::rows>>;
+
+};
+
+// Returns a non-zero number if the board is a winner.
+template<typename grid>
+struct get_bingo_card_value;
+
+template<bool winner, typename grid>
+struct get_bingo_card_value_aux;
+
+template<typename grid>
+struct get_bingo_card_value_aux<false, grid> {
+    using type = std::integral_constant<int, 0>;
+};
+
+template<typename grid>
+struct get_bingo_card_value_aux<true, grid> {
+    using type = typename count_undrawn<grid>::type;
+};
+
+template<typename grid>
+struct get_bingo_card_value
+    : get_bingo_card_value_aux<has_bingo<grid>::value, grid> {};
+
+template<typename lhs, typename rhs, typename = void>
+struct _max;
+
+template<typename lhs, typename rhs>
+using max = _max<lhs, rhs>;
+
+template<typename lhs, typename rhs>
+struct _max<lhs, rhs, std::enable_if_t<(lhs::value < rhs::value)>> {
+    using type = rhs;
+};
+
+template<typename lhs, typename rhs>
+struct _max<lhs, rhs, std::enable_if_t<(lhs::value >= rhs::value)>> {
+    using type = lhs;
+};
+
+template<typename cards>
+struct find_highscore {
+    constexpr static int value = cexpr::list::lfold_t<
+        max,
+        std::integral_constant<int, 0>,
+        cexpr::list::fmap_t<get_bingo_card_value, cards>>::value;
+};
+
+template<typename draws, typename cards>
+struct run_game_until_winner;
+
+template<int highscore, typename draws, typename cards, typename = void>
+struct run_game_until_winner_aux;
+
+// I have verified that get_bingo_card_value works, but I still can't figure
+// out why I get the wrong answer...
+
+template<int draw, int... draws, typename cards>
+struct run_game_until_winner_aux<
+    0, ValueList<draw, draws...>, cards> {
+
+    template<typename card>
+    using my_drawer = typename drawer<draw>::template func<card>;
+
+    using new_cards = cexpr::list::fmap_t<my_drawer, cards>;
+    using type = typename run_game_until_winner_aux<
+            find_highscore<new_cards>::value,
+            ValueList<draws...>,
+            new_cards
+        >::type;
+};
+
+template<int highscore, typename draws, typename cards>
+struct run_game_until_winner_aux<highscore, draws, cards, std::enable_if_t<highscore != 0>> {
+    using type = std::integral_constant<int, highscore>;
+};
+
+template<typename draws, typename cards>
+struct run_game_until_winner : run_game_until_winner_aux<0, draws, cards> {};
+
 template<int size, const char (&arr)[size]>
 struct solution {
-
     using parsed_input = parse_input<size, arr>;
-
-    constexpr static int answer = 0;
+    //using non_value_answer = run_game_until_winner<
+        //typename parsed_input::draws, typename parsed_input::boards>;
+    //constexpr static int answer = non_value_answer::type::value;
+    //constexpr static int answer = run_game_until_winner<
+        //typename parsed_input::draws, typename parsed_input::boards>::type::value;
 };
 
 template<int size, const char (&arr)[size]>

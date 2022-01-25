@@ -53,25 +53,34 @@ using prepend_t = typename prepend<val, intlist>::type;
 
 
 /**
- * ifmap
+ * fmap
  *
  * Maps func over intlist.
  */
-template<template<auto> typename func, typename intlist>
-struct ifmap;
+template<template<auto> typename func, typename valuelist>
+struct fmap;
 
 template<template<auto> typename func>
-struct ifmap<func, ValueList<>> {
+struct fmap<func, ValueList<>> {
     using type = ValueList<>;
 };
 
 template<template<auto> typename func, auto head, auto... rest>
-struct ifmap<func, ValueList<head, rest...>> {
+struct fmap<func, ValueList<head, rest...>> {
     using type = prepend_t<
         func<head>::value,
-        typename ifmap<func, ValueList<rest...>>::type
+        typename fmap<func, ValueList<rest...>>::type
     >;
 };
+
+// Old calls use "ifmap" because that's what I called it when this was just
+// an IntList. Using decl lets me update the name without renaming it
+// everywhere.
+template<template<auto> typename func, typename valuelist>
+using ifmap = fmap<func, valuelist>;
+
+template<template<auto> typename func, typename valuelist>
+using fmap_t = typename fmap<func, valuelist>::type;
 
 /**
  * zip
@@ -179,14 +188,14 @@ struct concat<ValueList<lst1_elems...>, ValueList<lst2_elems...>> {
  *
  * Returns a list of the first n elements of lst.
  */
-template<int n, typename lst>
+template<int n, typename lst, typename = void>
 struct take;
 
 template<int n, auto elem, auto... elems>
-struct take<n, ValueList<elem, elems...>> {
+struct take<n, ValueList<elem, elems...>, std::enable_if_t<n != 0>> {
     using type = prepend_t<
         elem,
-        take<n - 1, ValueList<elems...>>
+        typename take<n - 1, ValueList<elems...>>::type
     >;
 };
 
@@ -338,6 +347,57 @@ struct split_helper<
 
 template<char on, typename str>
 struct split : split_helper<on, List<>, String<>, str> {};
+
+template<char on, typename str>
+using split_t = typename split<on, str>::type;
+
+/**
+ * fmap_to_value
+ *
+ * Maps a template which defines ::value over a List of typenames. Defines
+ * a typedef, type, which is a ValueList of the mapped values.
+ */
+template<template<typename> typename func, typename list>
+struct fmap_to_value;
+
+template<template<typename> typename func, typename elem, typename... elems>
+struct fmap_to_value<func, List<elem, elems...>> {
+    using type = prepend_t<
+        func<elem>::value,
+        typename fmap_to_value<func, List<elems...>>::type>;
+};
+
+template<template<typename> typename func>
+struct fmap_to_value<func, List<>> {
+    using type = ValueList<>;
+};
+
+template<template<typename> typename func, typename lst>
+using fmap_to_value_t = typename fmap_to_value<func, lst>::type;
+
+/**
+ * fmap_to_list
+ *
+ * The inverted form of fmap_to_value. Maps a func from 'value -> type' over
+ * a ValueList and returns a List.
+ */
+template<template<auto> typename func, typename list>
+struct fmap_to_list;
+
+template<template<auto> typename func, auto elem, auto... elems>
+struct fmap_to_list<func, ValueList<elem, elems...>> {
+    using type = cexpr::list::prepend_t<
+        typename func<elem>::type,
+        typename fmap_to_list<func, ValueList<elems...>>::type>;
+};
+
+template<template<auto> typename func>
+struct fmap_to_list<func, ValueList<>> {
+    using type = List<>;
+};
+
+template<template<auto> typename func, typename lst>
+using fmap_to_list_t = typename fmap_to_list<func, lst>::type;
 
 }; // namespace valuelist
 }; // namespace cexpr
