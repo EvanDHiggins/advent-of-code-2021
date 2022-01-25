@@ -378,6 +378,56 @@ struct run_game_until_winner_aux<last_draw, highscore, draws, cards, std::enable
 template<typename draws, typename cards>
 struct run_game_until_winner : run_game_until_winner_aux<0, 0, draws, cards> {};
 
+template<typename card>
+struct no_bingo {
+    constexpr static bool value = !has_bingo<card>::value;
+};
+
+template<typename cards>
+struct filter_winners_unless_one;
+
+template<typename winner>
+struct filter_winners_unless_one<List<winner>> {
+    using type = List<winner>;
+};
+
+
+template<typename cards>
+struct filter_winners_unless_one {
+    using type = cexpr::list::filter_t<
+            no_bingo,
+            cards
+        >;
+};
+
+template<int last_draw, int highscore, typename draws, typename cards, typename = void>
+struct run_game_until_loser_aux;
+
+template<int last_draw, int draw, int... draws, typename cards>
+struct run_game_until_loser_aux<
+    last_draw, 0, ValueList<draw, draws...>, cards> {
+    template<typename card>
+    using my_drawer = typename drawer<draw>::template func<card>;
+    using new_cards_temp = cexpr::list::fmap_t<my_drawer, cards>;
+    using new_cards = typename filter_winners_unless_one<new_cards_temp>::type;
+    using type = typename run_game_until_loser_aux<
+            draw,
+            find_highscore<new_cards>::value,
+            ValueList<draws...>,
+            new_cards
+        >::type;
+};
+
+template<int last_draw, int highscore, typename draws, typename last_card>
+struct run_game_until_loser_aux<
+    last_draw, highscore, draws, List<last_card>,
+    std::enable_if_t<highscore != 0>> {
+        using type = std::integral_constant<int, highscore * last_draw>;
+};
+
+template<typename draws, typename cards>
+struct run_game_until_loser : run_game_until_loser_aux<0, 0, draws, cards> {};
+
 template<int size, const char (&arr)[size]>
 struct solution {
     using parsed_input = parse_input<size, arr>;
@@ -387,5 +437,8 @@ struct solution {
 
 template<int size, const char (&arr)[size]>
 struct solution_pt2 {
-    constexpr static int answer = 0;
+    using parsed_input = parse_input<size, arr>;
+
+    constexpr static int answer = run_game_until_loser<
+        typename parsed_input::draws, typename parsed_input::boards>::type::value;
 };

@@ -187,6 +187,9 @@ struct filter<
   : filter<func, List<rest...>>
 {};
 
+template<template<typename> typename func, typename list>
+using filter_t = typename filter<func, list>::type;
+
 /**
  * take
  */

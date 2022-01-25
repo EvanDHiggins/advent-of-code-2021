@@ -65,6 +65,7 @@ using right_diag_complete =
     
 
 using sol = solution<cexpr::array::length(test_data), test_data>;
+using sol2 = solution_pt2<cexpr::array::length(test_data), test_data>;
 
 using actual_draws = cexpr::valuelist::take_t<12, sol::parsed_input::draws>;
 using winning_board = cexpr::list::drop_t<2, sol::parsed_input::boards>;
@@ -171,8 +172,8 @@ using twelve = next_iter<eleven>;
             //run_game_until_winner<actual_draws, winning_board>::type
         //>::value);
 static_assert(std::is_same<
-            std::integral_constant<int, sol::answer>,
-            std::integral_constant<int, 4512>
+            std::integral_constant<int, sol2::answer>,
+            std::integral_constant<int, 12>
         >::value);
 //static_assert(std::is_same<sol::parsed_input::boards, cexpr::List<>>::value);
 
