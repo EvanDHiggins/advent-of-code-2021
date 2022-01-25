@@ -17,7 +17,7 @@ using String = ValueList<cs...>;
  *
  * Returns the nth element of intlist.
  */
-template<int n, typename intlist>
+template<int n, typename valuelist>
 struct nth;
 
 template<auto head, auto... rest>
@@ -30,6 +30,37 @@ struct nth<n, ValueList<head, rest...>> {
     constexpr static decltype(n) value = nth<n - 1, ValueList<rest...>>::value;
 };
 
+/**
+ * tail
+ */
+template<typename valuelist>
+struct tail;
+
+template<auto head, auto... _tail>
+struct tail<ValueList<head, _tail...>> {
+    using type = ValueList<_tail...>;
+};
+
+template<typename valuelist>
+using tail_t = typename tail<valuelist>::type;
+
+
+template<auto val1, auto val2, typename valuelist>
+struct prepend_multiple;
+
+template<auto val1, auto val2, auto... elements>
+struct prepend_multiple<val1, val2, ValueList<elements...>> {
+    using type = ValueList<val1, val2, elements...>;
+};
+
+template<auto val1, auto val2>
+struct prepend_multiple<val1, val2, ValueList<>> {
+    using type = ValueList<val1, val2>;
+};
+
+
+template<auto val1, auto val2, typename valuelist>
+using prepend_multiple_t = typename prepend_multiple<val1, val2, valuelist>::type;
 /**
  * prepend
  *
@@ -51,6 +82,53 @@ struct prepend<val, ValueList<>> {
 template<auto val, typename intlist>
 using prepend_t = typename prepend<val, intlist>::type;
 
+/**
+ * set_nth
+ */
+template<int n, auto val, typename valuelist, typename = void>
+struct set_nth;
+
+template<int n, auto val, auto head, auto... rest>
+struct set_nth<
+    n, val, ValueList<head, rest...>,
+    std::enable_if_t<n != 0>> {
+    using type = prepend_t<
+            head,
+            typename set_nth<n - 1, val, ValueList<rest...>>::type
+        >;
+};
+
+template<auto val, auto head, auto... values>
+struct set_nth<0, val, ValueList<head, values...>> {
+    using type = ValueList<val, values...>;
+};
+
+template<int n, auto val, typename valuelist>
+using set_nth_t = typename set_nth<n, val, valuelist>::type;
+
+/**
+ * sum
+ */
+template<typename intlist>
+struct sum;
+
+template<unsigned long long acc, typename intlist>
+struct sum_aux;
+
+template<unsigned long long acc, unsigned long long head, unsigned long long... rest>
+struct sum_aux<acc, ValueList<head, rest...>> {
+    constexpr static unsigned long long value =
+        sum_aux<acc + head, ValueList<rest...>>::value;
+};
+
+template<unsigned long long acc>
+struct sum_aux<acc, ValueList<>> {
+    constexpr static unsigned long long value = acc;
+};
+
+
+template<typename intlist>
+struct sum : sum_aux<(unsigned long long)0, intlist> {};
 
 /**
  * fmap
@@ -164,6 +242,12 @@ template<int radix, auto x>
 struct to_int<radix, ValueList<x>> {
     constexpr static int value = value_to_int(x);
 };
+
+template<typename str>
+using to_base_ten = cexpr::valuelist::to_int<10, str>;
+
+template<typename str>
+using to_base_two = cexpr::valuelist::to_int<2, str>;
 
 /**
  * concat

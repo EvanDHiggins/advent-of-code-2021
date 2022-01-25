@@ -105,8 +105,9 @@ struct array_substring {
  *
  * Auxiliary function to serve readlines. Prefer to use that instead.
  *
- * Provides a typedef, type, which contains a cexpr::valuelist::String corresponding to the
- * characters from idx until the next '\n' or '\0' character.
+ * Provides a typedef, type, which contains a cexpr::valuelist::String
+ * corresponding to the characters from idx until the next '\n' or '\0'
+ * character.
  *
  * Also provides a constexpr int, next_index, which represents the next unread
  * index of arr. This index might point beyond the end of arr, so bounds
@@ -120,7 +121,8 @@ template<char... chars, int idx, int size, const char (&arr)[size]>
 struct readline_helper<
     cexpr::valuelist::String<chars...>, idx, size, arr,
     std::enable_if_t<arr[idx] != '\n' && arr[idx] != '\0'>>
-  : readline_helper<cexpr::valuelist::String<chars..., arr[idx]>, idx + 1, size, arr>
+  : readline_helper<
+        cexpr::valuelist::String<chars..., arr[idx]>, idx + 1, size, arr>
 {};
 
 template<typename str, int idx, int size, const char (&arr)[size]>
@@ -133,7 +135,8 @@ struct readline_helper<
 };
 
 template<int start, int size, const char (&arr)[size]>
-struct readline : readline_helper<cexpr::valuelist::String<>, start, size, arr> {};
+struct readline
+    : readline_helper<cexpr::valuelist::String<>, start, size, arr> {};
 
 /**
  * readlines
@@ -185,6 +188,9 @@ struct readlines_helper<
 {
         using type = list;
 };
+
+template<int size, const char (&arr)[size]>
+using readlines_t = typename readlines<size, arr>::type;
 
 constexpr bool is_whitespace(char c) {
     return c == '\n' || c == ' ' || c == '\t';
