@@ -5,21 +5,22 @@ using cexpr::valuelist::ValueList;
 
 template<typename fishies>
 struct next_day {
-    constexpr static unsigned long long spawners = cexpr::valuelist::nth<0, fishies>::value;
-    using type = cexpr::valuelist::append_t<
+    constexpr static std::uint64_t spawners
+        = cexpr::valuelist::nth<0, fishies>::value;
+    using rotated = cexpr::valuelist::append_t<
         spawners,
-        cexpr::valuelist::set_nth_t<
-            6,
-            spawners + (unsigned long long)cexpr::valuelist::nth<7, fishies>::value,
-            cexpr::valuelist::tail_t<fishies>>>;
+        cexpr::valuelist::tail_t<fishies>>;
+    constexpr static std::uint64_t new_6s
+        = cexpr::valuelist::nth<6, rotated>::value;
+    using type = cexpr::valuelist::set_nth_t<
+        6, spawners + new_6s, rotated>;
 };
-
 
 
 template<typename freq, typename fishies>
 struct count_fish;
 
-template<typename freq, int fish, int... fishies>
+template<typename freq, std::int64_t fish, std::int64_t... fishies>
 struct count_fish<freq, ValueList<fish, fishies...>> {
     using type = typename count_fish<
             valuelist::set_nth_t<
@@ -38,33 +39,22 @@ struct simulate_days;
 
 template<int days, typename fishie_freq>
 struct simulate_days<days, fishie_freq, std::enable_if_t<days != 0>> {
-    constexpr static unsigned long long value =
+    constexpr static std::uint64_t value =
         simulate_days<days - 1, typename next_day<fishie_freq>::type>::value;
 };
 
 template<typename fishie_freq>
 struct simulate_days<0, fishie_freq> {
-    constexpr static unsigned long long value =
+    constexpr static std::uint64_t value =
         valuelist::sum<fishie_freq>::value;
 };
 
-template<unsigned long long... values>
-using LongList = ValueList<values...>;
-
 template<int days, typename fishies>
 struct count_fish_in_n_days {
-    constexpr static unsigned long long value = simulate_days<
+    constexpr static std::uint64_t value = simulate_days<
         days,
-        typename count_fish<LongList<
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0>, fishies>::type
+        typename count_fish<valuelist::LongList<0, 0, 0, 0, 0, 0, 0, 0, 0>,
+            fishies>::type
     >::value;
 };
 
@@ -74,7 +64,7 @@ struct solution {
         cexpr::valuelist::to_base_ten,
         cexpr::valuelist::split_t<
             ',', cexpr::list::head_t<cexpr::array::readlines_t<size, arr>>>>;
-    constexpr static unsigned long long answer =
+    constexpr static std::uint64_t answer =
         count_fish_in_n_days<80, input>::value;
             
 };
@@ -85,6 +75,6 @@ struct solution_pt2 {
         cexpr::valuelist::to_base_ten,
         cexpr::valuelist::split_t<
             ',', cexpr::list::head_t<cexpr::array::readlines_t<size, arr>>>>;
-    constexpr static unsigned long long answer =
+    constexpr static std::uint64_t answer =
         count_fish_in_n_days<256, input>::value;
 };

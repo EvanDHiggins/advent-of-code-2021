@@ -12,6 +12,9 @@ struct ValueList;
 template<char... cs>
 using String = ValueList<cs...>;
 
+template<typename t>
+struct test;
+
 /**
  * nth
  *
@@ -22,12 +25,13 @@ struct nth;
 
 template<auto head, auto... rest>
 struct nth<0, ValueList<head, rest...>> {
-    constexpr static int value = head;
+    constexpr static decltype(head) value = head;
 };
 
 template<auto n, auto head, auto... rest>
 struct nth<n, ValueList<head, rest...>> {
-    constexpr static decltype(n) value = nth<n - 1, ValueList<rest...>>::value;
+    constexpr static decltype(head) value =
+        nth<n - 1, ValueList<rest...>>::value;
 };
 
 /**
@@ -60,7 +64,9 @@ struct prepend_multiple<val1, val2, ValueList<>> {
 
 
 template<auto val1, auto val2, typename valuelist>
-using prepend_multiple_t = typename prepend_multiple<val1, val2, valuelist>::type;
+using prepend_multiple_t = typename prepend_multiple<
+    val1, val2, valuelist>::type;
+
 /**
  * prepend
  *
@@ -106,29 +112,33 @@ struct set_nth<0, val, ValueList<head, values...>> {
 template<int n, auto val, typename valuelist>
 using set_nth_t = typename set_nth<n, val, valuelist>::type;
 
+
+template<std::uint64_t... values>
+using LongList = ValueList<values...>;
+
 /**
  * sum
  */
-template<typename intlist>
+template<typename intlist, typename intwidth = std::int64_t>
 struct sum;
 
-template<unsigned long long acc, typename intlist>
+template<auto acc, typename intlist>
 struct sum_aux;
 
-template<unsigned long long acc, unsigned long long head, unsigned long long... rest>
+template<auto acc, auto head, auto... rest>
 struct sum_aux<acc, ValueList<head, rest...>> {
-    constexpr static unsigned long long value =
-        sum_aux<acc + head, ValueList<rest...>>::value;
+    constexpr static decltype(acc) value =
+        sum_aux<acc + head, LongList<rest...>>::value;
 };
 
-template<unsigned long long acc>
+template<auto acc>
 struct sum_aux<acc, ValueList<>> {
-    constexpr static unsigned long long value = acc;
+    constexpr static decltype(acc) value = acc;
 };
 
 
-template<typename intlist>
-struct sum : sum_aux<(unsigned long long)0, intlist> {};
+template<typename intlist, typename intwidth>
+struct sum : sum_aux<(intwidth)0, intlist> {};
 
 /**
  * fmap
@@ -228,19 +238,19 @@ constexpr int value_to_int(int c) {
     return c;
 };
 
-template<int radix, typename lst>
+template<int radix, typename lst, typename intwidth = std::int64_t>
 struct to_int;
 
-template<int radix, auto x, auto... xs>
-struct to_int<radix, ValueList<x, xs...>> {
-    constexpr static int value =
+template<int radix, auto x, auto... xs, typename intwidth>
+struct to_int<radix, ValueList<x, xs...>, intwidth> {
+    constexpr static intwidth value =
         (value_to_int(x) * cexpr::math::pow<radix, sizeof...(xs)>::value)
         + to_int<radix, ValueList<xs...>>::value;
 };
 
-template<int radix, auto x>
-struct to_int<radix, ValueList<x>> {
-    constexpr static int value = value_to_int(x);
+template<int radix, auto x, typename intwidth>
+struct to_int<radix, ValueList<x>, intwidth> {
+    constexpr static intwidth value = value_to_int(x);
 };
 
 template<typename str>

@@ -1,6 +1,8 @@
 #include "6/lib.h"
 #include "lib/cexpr/array.h"
 #include "lib/cexpr/list.h"
+#include <limits>
+#include <iostream>
 using cexpr::array::length;
 
 constexpr static char sample_fish[] = 
@@ -11,15 +13,8 @@ R"(
 using sol = solution<length(sample_fish), sample_fish>;
 using sol2 = solution_pt2<length(sample_fish), sample_fish>;
 
-static_assert(
-        std::is_same<
-            std::integral_constant<unsigned long long, sol::answer>,
-            std::integral_constant<unsigned long long, 5934>
-            >::value);
+//static_assert(std::is_same<std::integral_constant<std::uint64_t, sol2::answer>)
 
-static_assert(
-        std::is_same<
-            std::integral_constant<unsigned long long, sol2::answer>,
-            std::integral_constant<unsigned long long, 5934>
-            >::value);
-int main() {}
+int main() {
+    std::cout << sol2::answer << std::endl;
+}
