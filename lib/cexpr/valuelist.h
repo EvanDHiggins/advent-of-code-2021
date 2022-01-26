@@ -16,6 +16,17 @@ template<typename t>
 struct test;
 
 /**
+ * head
+ */
+template<typename valuelist>
+struct head;
+
+template<auto _head, auto... rest>
+struct head<ValueList<_head, rest...>> {
+    constexpr static decltype(_head) value = _head;
+};
+
+/**
  * nth
  *
  * Returns the nth element of intlist.
@@ -139,6 +150,17 @@ struct sum_aux<acc, ValueList<>> {
 
 template<typename intlist, typename intwidth>
 struct sum : sum_aux<(intwidth)0, intlist> {};
+
+/**
+ * length
+ */
+template<typename lst>
+struct length;
+
+template<auto... elements>
+struct length<ValueList<elements...>> {
+    constexpr static std::size_t value = sizeof...(elements);
+};
 
 /**
  * fmap
@@ -492,6 +514,99 @@ struct fmap_to_list<func, ValueList<>> {
 
 template<template<auto> typename func, typename lst>
 using fmap_to_list_t = typename fmap_to_list<func, lst>::type;
+
+/**
+ * box_value
+ */
+template<auto v>
+struct box_value : std::integral_constant<decltype(v), v> {};
+
+/**
+ * unbox_value
+ */
+template<typename b>
+struct unbox_value {
+    constexpr static decltype(b::value) value = b::value;
+};
+
+/**
+ * gen
+ */
+template<std::uint64_t count, auto v>
+struct gen {
+    using type = prepend_t<
+            v,
+            typename gen<count - 1, v>::type
+        >;
+};
+
+template<auto v>
+struct gen<0, v> {
+    using type = ValueList<v>;
+};
+
+template<std::uint64_t count, auto v>
+using gen_t = typename gen<count, v>::type;
+
+/**
+ * max
+ */
+template<typename valuelist, template<auto, auto> typename max_func = cexpr::math::max>
+struct max;
+
+template<template<auto, auto> typename max_func, auto max, typename valuelist>
+struct max_aux;
+
+template<template<auto, auto> typename max_func, auto max>
+struct max_aux<max_func, max, ValueList<>> {
+    constexpr static decltype(max) value = max;
+};
+
+template<
+    template<auto, auto> typename max_func, auto max, auto head, auto...rest>
+struct max_aux<max_func, max, ValueList<head, rest...>> {
+    constexpr static decltype(max) value =
+        max_aux<
+            max_func, max_func<max, head>::value, ValueList<rest...>>::value;
+};
+
+template<
+    typename valuelist,
+    template<auto, auto> typename max_func>
+struct max : max_aux<max_func, head<valuelist>::value, tail_t<valuelist>> {};
+
+/**
+ * build_freq_map
+ *
+ * Returns a ValueList<uint64_t>, freq, with size elements where:
+ *      freq[i] = #occurrences of i in valuelist
+ */
+template<auto size, typename valuelist>
+struct build_freq_map;
+
+template<typename freq, typename valuelist>
+struct build_freq_map_aux;
+
+template<auto size, typename valuelist>
+struct build_freq_map
+    : build_freq_map_aux<gen_t<size, (decltype(size))0>, valuelist> {};
+
+template<typename freq, auto val, auto... vals>
+struct build_freq_map_aux<freq, ValueList<val, vals...>> {
+    using type = typename build_freq_map_aux<
+            valuelist::set_nth_t<
+                val, valuelist::nth<val, freq>::value + 1, freq>,
+            ValueList<vals...>
+        >::type;
+};
+
+template<typename freq>
+struct build_freq_map_aux<freq, ValueList<>> {
+    using type = freq;
+};
+
+template<auto size, typename valuelist>
+using build_freq_map_t = typename build_freq_map<size, valuelist>::type;
 
 }; // namespace valuelist
 }; // namespace cexpr

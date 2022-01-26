@@ -112,7 +112,7 @@ struct length;
 
 template<typename... elems>
 struct length<List<elems...>> {
-    constexpr static int value = sizeof...(elems);
+    constexpr static std::uint64_t value = sizeof...(elems);
 };
 
 template<typename val, typename list>
@@ -309,6 +309,125 @@ struct any {
 template<template<typename> typename func, typename lst>
 using any_t = typename any<func, lst>::type;
 
+
+/**
+ * mergesort
+ * merge
+ */
+template<typename lhs, typename rhs, typename = void>
+struct _less_than;
+
+template<typename lhs, typename rhs>
+struct _less_than<lhs, rhs, std::enable_if_t<(lhs::value <= rhs::value)>>
+    : std::true_type {};
+
+template<typename lhs, typename rhs>
+struct _less_than<lhs, rhs, std::enable_if_t<(lhs::value > rhs::value)>>
+    : std::false_type {};
+
+template<typename lhs, typename rhs>
+using less_than = _less_than<lhs, rhs>;
+
+template<
+    typename lst, template<typename, typename> typename lt = less_than>
+struct merge_sort;
+
+template<
+    typename lhs,
+    typename rhs, 
+    template<typename,typename> typename lt,
+    typename = void>
+struct merge;
+
+template<
+    typename l,
+    typename... ls,
+    typename r,
+    typename... rs,
+    template<typename,typename> typename lt>
+struct merge<
+    List<l, ls...>, List<r, rs...>, lt,
+    std::enable_if_t<lt<l, r>::value>> {
+        using type = cexpr::list::prepend_t<
+                l, typename merge<List<ls...>, List<r, rs...>, lt>::type>;
+};
+
+template<
+    typename l,
+    typename... ls,
+    typename r,
+    typename... rs,
+    template<typename,typename> typename lt>
+struct merge<
+    List<l, ls...>, List<r, rs...>, lt,
+    std::enable_if_t<!lt<l, r>::value>> {
+        using type = cexpr::list::prepend_t<
+                r, typename merge<List<l, ls...>, List<rs...>, lt>::type>;
+};
+
+template<
+    typename lhs,
+    template<typename,typename> typename lt>
+struct merge<
+    lhs, List<>, lt> {
+        using type = lhs;
+};
+
+template<
+    typename rhs,
+    template<typename,typename> typename lt>
+struct merge<
+    List<>, rhs, lt> {
+        using type = rhs;
+};
+
+template<
+    typename left,
+    template<typename,typename> typename lt>
+struct merge<List<left>, List<>, lt> {
+    using type = List<left>;
+};
+
+template<
+    typename right,
+    template<typename,typename> typename lt>
+struct merge<List<>, List<right>, lt> {
+    using type = List<right>;
+};
+
+template<
+    template<typename,typename> typename lt>
+struct merge<List<>, List<>, lt> {
+    using type = List<>;
+};
+
+template<
+    typename e1, typename e2, template<typename, typename> typename lt>
+struct merge_sort<List<e1, e2>, lt> {
+    using type = typename merge<List<e1>, List<e2>, lt>::type;
+};
+
+template<
+    typename element,
+    template<typename, typename> typename lt>
+struct merge_sort<List<element>, lt> {
+    using type = List<element>;
+};
+
+template<
+    template<typename, typename> typename lt>
+struct merge_sort<List<>, lt> {
+    using type = List<>;
+};
+
+template<
+    typename lst, template<typename, typename> typename lt>
+struct merge_sort {
+    constexpr static std::int64_t mid = cexpr::list::length<lst>::value / 2;
+    using left = typename merge_sort<cexpr::list::take_t<mid, lst>>::type;
+    using right = typename merge_sort<cexpr::list::drop_t<mid, lst>>::type;
+    using type = typename merge<left, right, lt>::type;
+};
 
 }; // namespace list
 

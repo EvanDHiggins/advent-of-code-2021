@@ -169,9 +169,6 @@ struct new_cell {
 };
 
 template<typename str>
-using to_base_ten = cexpr::valuelist::to_int<10, str>;
-
-template<typename str>
 struct parse_line {
     using type =
         cexpr::valuelist::fmap_to_list_t<
