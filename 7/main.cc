@@ -14,6 +14,11 @@ using sol_pt2 = solution_pt2<
 int main() {
      //388739
     std::cout << "Answer to part one is: " << sol::answer << std::endl;
+    static_assert(
+            std::is_same<
+                sol::crabs,
+                cexpr::valuelist::ValueList<>
+            >::value);
 
     //1741362314973
     std::cout << "Answer to part two is: " << sol_pt2::answer << std::endl;

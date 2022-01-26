@@ -25,9 +25,16 @@ static_assert(
         ValueList<0,1,3,4,6,8,9,10>
     >::value);
 
-using crab_freq = valuelist::build_freq_map_t<
-    sol::max_crab, sol::crabs>;
-static_assert(sol::initial_fuel == 49);
+//static_assert(
+    //std::is_same<
+        //sol::crabs,
+        //ValueList<0,1,3,4,6,8,9,10>
+    //>::value);
+
+
+//using crab_freq = valuelist::build_freq_map_t<
+    //sol::max_crab, sol::crabs>;
+//static_assert(sol::initial_fuel == 49);
 //static_assert(
         //std::is_same<
 

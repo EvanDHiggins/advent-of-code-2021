@@ -86,44 +86,123 @@ struct align_crabs<
         math::min<best, left_window::fuel>::value;
 };
 
+template<int size, const char (&arr)[size]>
+struct fast_comma_split;
+
+template<
+    typename ints,
+    int idx,
+    typename buffer,
+    int size, const char (&arr)[size],
+    typename = void>
+struct fast_comma_split_aux;
+
+template<int size, const char (&arr)[size]>
+struct fast_comma_split
+    : fast_comma_split_aux<ValueList<>, 0, ValueList<>, size, arr> {};
+
+template<
+    typename ints,
+    int idx,
+    typename buffer,
+    int size,
+    const char (&arr)[size]>
+struct fast_comma_split_aux<
+    ints, idx, buffer, size, arr, std::enable_if_t<(idx+1 >= size)>> {
+        using type = valuelist::append_t<
+            valuelist::to_base_ten<buffer>::value, ints>;
+};
+
+template<
+    typename ints,
+    int idx,
+    typename buffer,
+    int size,
+    const char (&arr)[size]>
+struct fast_comma_split_aux<
+    ints, idx, buffer, size, arr, std::enable_if_t<
+        arr[idx] != ',' && arr[idx] != '\n' && idx+1 < size>> {
+        using type = typename fast_comma_split_aux<
+                ints,
+                idx + 1,
+                valuelist::append_t<arr[idx], buffer>,
+                size,
+                arr
+            >::type;
+};
+
+template<
+    typename ints,
+    int idx,
+    typename buffer,
+    int size,
+    const char (&arr)[size]>
+struct fast_comma_split_aux<
+    ints, idx, buffer, size, arr, std::enable_if_t<
+        arr[idx] == '\n'>> {
+        using type = typename fast_comma_split_aux<
+                ints,
+                idx + 1,
+                buffer,
+                size,
+                arr
+            >::type;
+};
+
+
+template<
+    typename ints,
+    int idx,
+    typename buffer,
+    int size,
+    const char (&arr)[size]>
+struct fast_comma_split_aux<
+    ints, idx, buffer, size, arr, std::enable_if_t<arr[idx] == ','>> {
+        using type = typename fast_comma_split_aux<
+                valuelist::prepend_t<
+                    valuelist::to_base_ten<buffer>::value, ints>,
+                idx + 1,
+                ValueList<>,
+                size,
+                arr
+            >::type;
+};
 
 template<int size, const char (&arr)[size]>
 struct solution {
 
-    using unsorted_crabs = valuelist::fmap_to_value_t<
+    using crabs = valuelist::fmap_to_value_t<
         valuelist::to_base_ten,
         valuelist::split_t<
             ',', list::head_t<array::readlines_t<size, arr>>>>;
 
-    using crabs = valuelist::fmap_to_value_t<
-            valuelist::unbox_value,
-            typename list::merge_sort<
-                valuelist::fmap_to_list_t<
-                    valuelist::box_value, unsorted_crabs>>::type>;
+    //using crabs = valuelist::fmap_to_value_t<
+            //valuelist::unbox_value,
+            //typename list::merge_sort<
+                //valuelist::fmap_to_list_t<
+                    //valuelist::box_value, unsorted_crabs>>::type>;
 
-    constexpr static std::int64_t max_crab = valuelist::max<crabs>::value;
+    //constexpr static std::int64_t max_crab = valuelist::max<crabs>::value;
 
-    using crab_freq = valuelist::build_freq_map_t<
-        max_crab, crabs>;
-    constexpr static std::uint64_t total_crabs =
-        valuelist::sum<crab_freq>::value;
-    constexpr static std::int64_t initial_fuel =
-        ::initial_fuel<crab_freq>::value;
+    //using crab_freq = valuelist::build_freq_map_t<
+        //max_crab, crabs>;
+    //constexpr static std::uint64_t total_crabs =
+        //valuelist::sum<crab_freq>::value;
+    //constexpr static std::int64_t initial_fuel =
+        //::initial_fuel<crab_freq>::value;
 
-    using left_window = CrabWindow<0, 0>;
-    using right_window = CrabWindow<
-        total_crabs - valuelist::nth<0, crab_freq>::value,
-        initial_fuel
-    >;
+    //using left_window = CrabWindow<0, 0>;
+    //using right_window = CrabWindow<
+        //total_crabs - valuelist::nth<0, crab_freq>::value,
+        //initial_fuel
+    //>;
 
-    using t = initial_fuel::type;
-
-    constexpr static std::uint64_t answer = align_crabs<
-        std::numeric_limits<std::int64_t>::max(),
-        0,
-        left_window,
-        crab_freq,
-        right_window>::value;
+    //constexpr static std::uint64_t answer = align_crabs<
+        //std::numeric_limits<std::int64_t>::max(),
+        //0,
+        //left_window,
+        //crab_freq,
+        //right_window>::value;
 
 };
 
