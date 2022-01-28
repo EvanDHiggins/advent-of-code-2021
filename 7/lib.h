@@ -1,6 +1,7 @@
 #pragma once
 #include "lib/cexpr/array.h"
 #include "lib/cexpr/math.h"
+#include "lib/cexpr/array.h"
 #include <numeric>
 using namespace cexpr;
 using cexpr::valuelist::ValueList;
@@ -35,7 +36,8 @@ template<
     std::int64_t best,
     int pos,
     typename left_window, 
-    typename crab_freq,
+    std::size_t furthest_crab,
+    const std::int64_t (&crab_freq)[furthest_crab],
     typename right_window,
     typename = void>
 struct align_crabs;
@@ -45,16 +47,18 @@ template<
     int pos,
     auto left_crabs,
     auto left_fuel,
-    typename crab_freq,
+    std::size_t furthest_crab,
+    const std::int64_t (&crab_freq)[furthest_crab],
     auto right_crabs,
     auto right_fuel>
 struct align_crabs<
     best,
     pos,
     CrabWindow<left_crabs, left_fuel>,
+    furthest_crab,
     crab_freq,
     CrabWindow<right_crabs, right_fuel>,
-    std::enable_if_t<(pos + 1 < valuelist::length<crab_freq>::value)>> {
+    std::enable_if_t<(pos + 1 < furthest_crab)>> {
         constexpr static int new_best =
             math::min<best, left_fuel + right_fuel>::value;
         constexpr static std::int64_t value =
@@ -62,12 +66,12 @@ struct align_crabs<
                 new_best,
                 pos + 1,
                 CrabWindow<
-                    left_crabs + valuelist::nth<pos, crab_freq>::value,
-                    left_fuel
-                        + valuelist::nth<pos, crab_freq>::value + left_crabs>,
+                    left_crabs + crab_freq[pos],
+                    left_fuel + crab_freq[pos] + left_crabs>,
+                furthest_crab,
                 crab_freq,
                 CrabWindow<
-                    right_crabs - valuelist::nth<pos + 1, crab_freq>::value,
+                    right_crabs - crab_freq[pos + 1],
                     right_fuel - right_crabs
                 >
             >::value;
@@ -77,11 +81,12 @@ template<
     std::int64_t best,
     int pos,
     typename left_window, 
-    typename crab_freq,
+    std::size_t furthest_crab,
+    const std::int64_t (&crab_freq)[furthest_crab],
     typename right_window>
 struct align_crabs<
-    best, pos, left_window, crab_freq, right_window,
-    std::enable_if_t<(pos + 1 >= valuelist::length<crab_freq>::value)>> {
+    best, pos, left_window, furthest_crab, crab_freq, right_window,
+    std::enable_if_t<(pos + 1 >= furthest_crab)>> {
     constexpr static std::int64_t value =
         math::min<best, left_window::fuel>::value;
 };
@@ -159,7 +164,7 @@ template<
 struct fast_comma_split_aux<
     ints, idx, buffer, size, arr, std::enable_if_t<arr[idx] == ','>> {
         using type = typename fast_comma_split_aux<
-                valuelist::prepend_t<
+                valuelist::append_t<
                     valuelist::to_base_ten<buffer>::value, ints>,
                 idx + 1,
                 ValueList<>,
@@ -168,41 +173,78 @@ struct fast_comma_split_aux<
             >::type;
 };
 
-template<int size, const char (&arr)[size]>
+template<typename freq_map>
+struct FreqMapArray;
+
+template<auto value, auto... rest>
+struct FreqMapArray<ValueList<value, rest...>> {
+    constexpr static decltype(value) values[sizeof...(rest)+1] = {
+        value,
+        rest...
+    };
+    constexpr static std::size_t size = sizeof...(rest) + 1;
+};
+
+template<
+    std::size_t idx,
+    std::size_t size,
+    const std::int64_t (&arr)[size],
+    typename = void>
+struct read_int_array_aux;
+
+template<
+    std::size_t idx,
+    std::size_t size,
+    const std::int64_t (&arr)[size]>
+struct read_int_array_aux<idx, size, arr, std::enable_if_t<idx == size>> {
+    using type = ValueList<>;
+};
+
+template<
+    std::size_t idx,
+    std::size_t size,
+    const std::int64_t (&arr)[size]>
+struct read_int_array_aux<idx, size, arr, std::enable_if_t<(idx < size)>> {
+    using type = valuelist::prepend_t<
+            arr[idx],
+            typename read_int_array_aux<idx + 1, size, arr>::type
+        >;
+};
+
+template<std::size_t size, const std::int64_t (&arr)[size]>
+struct read_int_array : read_int_array_aux<0, size, arr> {};
+
+template<int size, const std::int64_t (&arr)[size]>
 struct solution {
 
-    using crabs = valuelist::fmap_to_value_t<
-        valuelist::to_base_ten,
-        valuelist::split_t<
-            ',', list::head_t<array::readlines_t<size, arr>>>>;
+    using crabs =
+        typename read_int_array<size, arr>::type;
 
-    //using crabs = valuelist::fmap_to_value_t<
-            //valuelist::unbox_value,
-            //typename list::merge_sort<
-                //valuelist::fmap_to_list_t<
-                    //valuelist::box_value, unsorted_crabs>>::type>;
+    constexpr static std::int64_t max_crab = valuelist::max<crabs>::value;
 
-    //constexpr static std::int64_t max_crab = valuelist::max<crabs>::value;
+    using crab_freq = typename valuelist::build_freq_map_from_sorted<
+        max_crab, crabs>::type;
 
-    //using crab_freq = valuelist::build_freq_map_t<
-        //max_crab, crabs>;
-    //constexpr static std::uint64_t total_crabs =
-        //valuelist::sum<crab_freq>::value;
-    //constexpr static std::int64_t initial_fuel =
-        //::initial_fuel<crab_freq>::value;
+    using crab_freq_array = FreqMapArray<crab_freq>;
 
-    //using left_window = CrabWindow<0, 0>;
-    //using right_window = CrabWindow<
-        //total_crabs - valuelist::nth<0, crab_freq>::value,
-        //initial_fuel
-    //>;
+    constexpr static std::uint64_t total_crabs =
+        valuelist::sum<crab_freq>::value;
+    constexpr static std::int64_t initial_fuel =
+        ::initial_fuel<crab_freq>::value;
 
-    //constexpr static std::uint64_t answer = align_crabs<
-        //std::numeric_limits<std::int64_t>::max(),
-        //0,
-        //left_window,
-        //crab_freq,
-        //right_window>::value;
+    using left_window = CrabWindow<0, 0>;
+    using right_window = CrabWindow<
+        total_crabs - valuelist::nth<0, crab_freq>::value,
+        initial_fuel
+    >;
+    
+    constexpr static std::uint64_t answer = align_crabs<
+        std::numeric_limits<std::int64_t>::max(),
+        0,
+        left_window,
+        crab_freq::size,
+        crab_freq::values,
+        right_window>::value;
 
 };
 

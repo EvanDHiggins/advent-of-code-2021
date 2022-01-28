@@ -20,6 +20,11 @@ constexpr int length(const char (&arr)[N]) {
   return N;
 }
 
+template<std::size_t N>
+constexpr std::size_t length(const std::int64_t (&arr)[N]) {
+  return N;
+}
+
 
 /**
  * to_typed_char_list

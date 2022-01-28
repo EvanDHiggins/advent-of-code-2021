@@ -600,6 +600,63 @@ struct build_freq_map_aux<freq, ValueList<val, vals...>> {
         >::type;
 };
 
+/**
+ * build_freq_map_from_sorted
+ */
+template<auto size, typename sortedlist>
+struct build_freq_map_from_sorted;
+
+template<typename counts, std::int64_t count, auto curr, auto last, typename sortedlist, typename = void>
+struct build_freq_map_from_sorted_aux;
+
+template<auto size, typename sortedlist>
+struct build_freq_map_from_sorted
+    : build_freq_map_from_sorted_aux<ValueList<>, 0, 0, size, sortedlist> {};
+
+template<typename counts, std::int64_t count, auto curr, auto last, auto head, auto... rest>
+struct build_freq_map_from_sorted_aux<
+    counts, count, curr, last, ValueList<head, rest...>, std::enable_if_t<head == curr>> {
+        using type = typename build_freq_map_from_sorted_aux<
+                counts,
+                count + 1,
+                curr,
+                last,
+                ValueList<rest...>
+            >::type;
+};
+
+template<typename counts, std::int64_t count, auto curr, auto last, typename sortedlist>
+struct build_freq_map_from_sorted_aux<
+    counts, count, curr, last, sortedlist, std::enable_if_t<(curr > last)>> {
+        using type = counts;
+};
+
+template<auto... counts, std::int64_t count, auto curr, auto last>
+struct build_freq_map_from_sorted_aux<
+    ValueList<counts...>, count, curr, last, ValueList<>, std::enable_if_t<(curr <= last)>> {
+        using type = typename build_freq_map_from_sorted_aux<
+            ValueList<counts..., count>,
+            0,
+            curr + 1,
+            last,
+            ValueList<>
+        >::type;
+};
+
+template<auto... counts, std::int64_t count, auto curr, auto last, auto head, auto... rest>
+struct build_freq_map_from_sorted_aux<
+    ValueList<counts...>, count, curr, last, ValueList<head, rest...>, std::enable_if_t<curr != head>> {
+        using type = typename build_freq_map_from_sorted_aux<
+                ValueList<counts..., count>,
+                0,
+                curr + 1,
+                last,
+                ValueList<head, rest...>
+            >::type;
+};
+
+
+
 template<typename freq>
 struct build_freq_map_aux<freq, ValueList<>> {
     using type = freq;

@@ -6,8 +6,9 @@ aoc_compile_time_binary(
     input_file = "input.txt",
     deps = [
         ":lib",
+        ":input_int_array"
     ],
-    copts = ["-ftemplate-depth=10000"],
+    copts = ["-ftemplate-depth=5000"],
 )
 
 cc_library(
@@ -18,6 +19,12 @@ cc_library(
         "//lib/cexpr:list",
         "//lib/cexpr:math",
     ]
+)
+
+cc_library(
+    name = "input_int_array",
+    hdrs = ["input.h"],
+    deps = []
 )
 
 cc_binary(

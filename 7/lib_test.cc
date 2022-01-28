@@ -7,8 +7,10 @@ using cexpr::array::length;
 
 constexpr static char sample_crabs[] = 
 R"(
-16,1,2,0,4,2,7,1,2,14
+0,1,1,2,2,2,4,7,14,16
 )";
+
+constexpr static int int_crabs[] = {0,1,1,2,2,2,4,7,14,16};
 
 using sol = solution<length(sample_crabs), sample_crabs>;
 //using sol2 = solution_pt2<length(sample_crabs), sample_crabs>;
@@ -21,26 +23,11 @@ using sorted = cexpr::valuelist::fmap_to_value_t<
 
 static_assert(
     std::is_same<
-        sorted,
+        input_list,
         ValueList<0,1,3,4,6,8,9,10>
     >::value);
 
-//static_assert(
-    //std::is_same<
-        //sol::crabs,
-        //ValueList<0,1,3,4,6,8,9,10>
-    //>::value);
 
-
-//using crab_freq = valuelist::build_freq_map_t<
-    //sol::max_crab, sol::crabs>;
-//static_assert(sol::initial_fuel == 49);
-//static_assert(
-        //std::is_same<
-
-        //>::value);
-//static_assert(std::is_same<lst, std::integral_constant<int, 0>>::value);
 
 int main() {
-    std::cout << sol::answer << std::endl;
 }
